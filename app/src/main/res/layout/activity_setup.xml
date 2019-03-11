@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/colorBlack"
+    tools:context=".SetupActivity">
+
+    <android.support.v7.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:cardCornerRadius="12dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <android.support.constraint.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <android.support.constraint.ConstraintLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintVertical_bias="0.75">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/setup_image"
+                    android:layout_width="175dp"
+                    android:layout_height="175dp"
+                    android:layout_marginTop="32dp"
+                    android:elevation="5dp"
+                    android:src="@mipmap/placeholder"
+                    app:civ_border_color="#E0E0E0"
+                    app:civ_border_width="2dp"
+                    app:layout_constraintBottom_toTopOf="@+id/setup_name"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <android.support.design.widget.FloatingActionButton
+                    android:id="@+id/pickImage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true"
+                    app:backgroundTint="?android:attr/windowBackground"
+                    app:fabCustomSize="50dp"
+                    app:layout_constraintBottom_toBottomOf="@+id/setup_image"
+                    app:layout_constraintEnd_toEndOf="@+id/setup_image"
+                    app:rippleColor="@color/colorBlack"
+                    app:srcCompat="@drawable/ic_photo" />
+
+                <EditText
+                    android:id="@+id/setup_name"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="48dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="48dp"
+                    android:layout_marginBottom="72dp"
+                    android:backgroundTint="@android:color/transparent"
+                    android:ellipsize="end"
+                    android:ems="10"
+                    android:fontFamily="@font/galdeano"
+                    android:hint="User name"
+                    android:importantForAutofill="no"
+                    android:inputType="textPersonName"
+                    android:paddingStart="16dp"
+                    android:paddingLeft="8dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="8dp"
+                    android:paddingRight="8dp"
+                    android:paddingBottom="10dp"
+                    android:textAlignment="center"
+                    android:textColor="@color/colorBlack"
+                    android:textColorHint="@android:color/darker_gray"
+                    android:textSize="24sp"
+                    app:layout_constraintBottom_toTopOf="@+id/setup_btn"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/setup_image"
+                    tools:ignore="HardcodedText"
+                    tools:targetApi="o" />
+
+                <android.support.v7.widget.CardView
+                    android:id="@+id/setup_btn"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:foreground="@drawable/ripple_effect"
+                    app:cardBackgroundColor="@color/colorPrimary"
+                    app:cardCornerRadius="22dp"
+                    app:cardElevation="1dp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/setup_name">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:fontFamily="@font/artifika"
+                        android:paddingStart="48dp"
+                        android:paddingLeft="48dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="48dp"
+                        android:paddingRight="48dp"
+                        android:paddingBottom="10dp"
+                        android:text="Next"
+                        android:textColor="@color/colorWhite"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        tools:ignore="HardcodedText" />
+
+                </android.support.v7.widget.CardView>
+
+            </android.support.constraint.ConstraintLayout>
+
+        </android.support.constraint.ConstraintLayout>
+
+    </android.support.v7.widget.CardView>
+
+</android.support.constraint.ConstraintLayout>

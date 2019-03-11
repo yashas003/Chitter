@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <android.support.constraint.ConstraintLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/maleImage"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginEnd="40dp"
+            app:layout_constraintBottom_toTopOf="@+id/maleText"
+            app:layout_constraintEnd_toStartOf="@+id/femaleImage"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_boy"
+            tools:ignore="ContentDescription" />
+
+        <ImageView
+            android:id="@+id/femaleImage"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginStart="40dp"
+            android:layout_marginTop="40dp"
+            android:layout_marginEnd="40dp"
+            app:layout_constraintBottom_toTopOf="@+id/femaleText"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/maleImage"
+            app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@drawable/ic_girl"
+            tools:ignore="ContentDescription" />
+
+        <TextView
+            android:id="@+id/maleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp"
+            android:fontFamily="@font/artifika"
+            android:text="Male"
+            android:textColor="@color/colorGray"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/maleImage"
+            app:layout_constraintStart_toStartOf="@+id/maleImage"
+            app:layout_constraintTop_toBottomOf="@+id/maleImage"
+            tools:ignore="HardcodedText" />
+
+        <TextView
+            android:id="@+id/femaleText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="24dp"
+            android:fontFamily="@font/artifika"
+            android:text="Female"
+            android:textColor="@color/colorGray"
+            android:textSize="16sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="@+id/femaleImage"
+            app:layout_constraintStart_toStartOf="@+id/femaleImage"
+            app:layout_constraintTop_toBottomOf="@+id/femaleImage"
+            tools:ignore="HardcodedText" />
+
+    </android.support.constraint.ConstraintLayout>
+
+</android.support.constraint.ConstraintLayout>

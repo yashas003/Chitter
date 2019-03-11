@@ -1,0 +1,28 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item>
+
+        <item name="android:windowLightStatusBar" tools:targetApi="23">true</item>
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="actionOverflowButtonStyle">@style/DotsDarkTheme</item>
+    </style>
+
+    <style name="DotsDarkTheme" parent="@style/Widget.AppCompat.ActionButton.Overflow">
+        <item name="tint">@color/colorGray</item>
+    </style>
+
+    <style name="ToolBarFont">
+        <item name="android:textSize">24sp</item>
+        <item name="android:fontFamily">@font/caveat_bold</item>
+    </style>
+
+    <style name="CollapsedAppBar" parent="@android:style/TextAppearance.Medium">
+        <item name="android:fontFamily">@font/caveat_bold</item>
+    </style>
+
+</resources>
