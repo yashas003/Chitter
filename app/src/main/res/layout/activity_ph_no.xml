@@ -10,12 +10,13 @@
         android:id="@+id/phNoToolbar"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="?android:attr/windowBackground"
+        android:background="@color/colorPrimary"
         android:elevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="Phone number" />
+        app:title="Phone number"
+        app:titleTextColor="@color/colorWhite" />
 
     <android.support.constraint.ConstraintLayout
         android:layout_width="0dp"

@@ -10,14 +10,14 @@
         android:id="@+id/edit_profile_toolbar"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="?android:attr/windowBackground"
+        android:background="@color/colorPrimary"
         android:elevation="4dp"
         app:layout_constraintBottom_toTopOf="@+id/scrollView2"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:title="Edit Profile"
-        app:titleTextColor="@color/colorGray" />
+        app:titleTextColor="@color/colorWhite" />
 
     <ScrollView
         android:id="@+id/scrollView2"
@@ -35,7 +35,7 @@
 
             <android.support.constraint.ConstraintLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="1500dp">
 
                 <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/edit_user_image"
@@ -70,15 +70,15 @@
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="32dp"
                     android:layout_marginEnd="16dp"
-                    android:text="Name"
-                    app:layout_constraintBottom_toTopOf="@+id/edit_user_name"
+                    android:text="Display name"
+                    app:layout_constraintBottom_toTopOf="@+id/edit_user_display_name"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/image_picker"
                     tools:ignore="HardcodedText" />
 
                 <EditText
-                    android:id="@+id/edit_user_name"
+                    android:id="@+id/edit_user_display_name"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="16dp"
@@ -87,7 +87,7 @@
                     android:ems="10"
                     android:hint="No name"
                     android:inputType="textPersonName"
-                    app:layout_constraintBottom_toTopOf="@+id/textView11"
+                    app:layout_constraintBottom_toTopOf="@+id/textView6"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/textView4"
@@ -104,7 +104,7 @@
                     app:layout_constraintBottom_toTopOf="@+id/edit_user_website"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/edit_user_name"
+                    app:layout_constraintTop_toBottomOf="@+id/edit_user_username"
                     tools:ignore="HardcodedText" />
 
                 <EditText
@@ -146,7 +146,7 @@
                     android:backgroundTint="@color/colorPrimary"
                     android:ellipsize="end"
                     android:ems="10"
-                    android:hint="No Bio"
+                    android:hint="No bio"
                     android:inputType="textMultiLine"
                     android:maxLines="5"
                     app:layout_constraintBottom_toTopOf="@+id/textView13"
@@ -484,6 +484,36 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/instagram_username"
                     tools:ignore="HardcodedText" />
+
+                <TextView
+                    android:id="@+id/textView6"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="24dp"
+                    android:layout_marginEnd="16dp"
+                    android:text="Username"
+                    app:layout_constraintBottom_toTopOf="@+id/edit_user_username"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/edit_user_display_name"
+                    tools:ignore="HardcodedText" />
+
+                <EditText
+                    android:id="@+id/edit_user_username"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
+                    android:backgroundTint="@color/colorPrimary"
+                    android:ems="10"
+                    android:hint="No username"
+                    android:inputType="textNoSuggestions|textUri"
+                    app:layout_constraintBottom_toTopOf="@+id/textView11"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/textView6"
+                    tools:ignore="Autofill,HardcodedText" />
 
             </android.support.constraint.ConstraintLayout>
 

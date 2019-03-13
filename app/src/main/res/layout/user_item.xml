@@ -69,18 +69,20 @@
             android:id="@+id/user_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:ellipsize="end"
             android:fontFamily="@font/galdeano"
+            android:maxLines="1"
             android:textColor="@color/colorGray"
             android:textSize="20sp"
             android:textStyle="bold"
-            app:layout_constraintBottom_toTopOf="@+id/user_bio"
+            app:layout_constraintBottom_toTopOf="@+id/unique_name"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             tools:ignore="HardcodedText" />
 
         <TextView
-            android:id="@+id/user_bio"
+            android:id="@+id/unique_name"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:ellipsize="end"

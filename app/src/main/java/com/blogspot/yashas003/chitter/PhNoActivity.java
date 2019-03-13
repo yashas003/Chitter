@@ -23,9 +23,8 @@ public class PhNoActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_ph_no);
 
-        if (Build.VERSION.SDK_INT >= 21 && Build.VERSION.SDK_INT < 23) {
-            getWindow().setStatusBarColor(getResources().getColor(R.color.colorGray));
-        } else if (Build.VERSION.SDK_INT >= 23) {
+        if (Build.VERSION.SDK_INT >= 21) {
+            getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimary));
             getWindow().setNavigationBarColor(Color.BLACK);
         }
 

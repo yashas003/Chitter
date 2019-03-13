@@ -77,6 +77,7 @@ public class ProfileFragment extends Fragment {
     BottomNavigationView bottomNavigationView;
     Menu menu;
     MenuItem menuItem;
+
     AVLoadingIndicatorView spinner;
     ConstraintLayout downloadImage;
     ConstraintLayout shareImage;
@@ -84,7 +85,7 @@ public class ProfileFragment extends Fragment {
     CollapsingToolbarLayout ctl;
     RecyclerView recyclerView;
     CircleImageView userImage;
-    TextView userName;
+    TextView displayName;
     TextView userBio;
     TextView btnText;
     AppBarLayout abl;
@@ -94,12 +95,15 @@ public class ProfileFragment extends Fragment {
     CardView editBtn;
     Toolbar toolbar;
     Time time;
+
     FirebaseFirestore firebaseFirestore;
     FirebaseAuth mAuth;
+
     String fb_username;
     String tweet_username;
     String tweet_userID;
     String insta_username;
+    String username;
     String user_id;
     String website;
     String image;
@@ -135,8 +139,8 @@ public class ProfileFragment extends Fragment {
         user_id = mAuth.getCurrentUser().getUid();
 
         backPic = view.findViewById(R.id.back_picture);
-        userName = view.findViewById(R.id.user_name);
-        userBio = view.findViewById(R.id.user_bio);
+        displayName = view.findViewById(R.id.user_name);
+        userBio = view.findViewById(R.id.unique_name);
         btnText = view.findViewById(R.id.button_text);
 
         spinner = view.findViewById(R.id.progressBar);
@@ -418,11 +422,16 @@ public class ProfileFragment extends Fragment {
 
                                 name = task.getResult().getString("user_name");
                                 if (name != null && !name.trim().isEmpty()) {
-                                    userName.setVisibility(View.VISIBLE);
-                                    userName.setText(name);
-                                    ctl.setTitle(name);
+                                    displayName.setVisibility(View.VISIBLE);
+                                    displayName.setText(name);
                                 } else {
-                                    userName.setVisibility(View.GONE);
+                                    displayName.setVisibility(View.GONE);
+                                }
+
+                                username = task.getResult().getString("unique_name");
+                                if (username != null && !username.trim().isEmpty()) {
+                                    ctl.setTitle(username);
+                                } else {
                                     ctl.setTitle(" ");
                                 }
 

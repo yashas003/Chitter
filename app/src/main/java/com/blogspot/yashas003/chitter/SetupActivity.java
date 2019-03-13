@@ -14,6 +14,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
@@ -25,8 +27,11 @@ import android.widget.Toast;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -46,7 +51,9 @@ public class SetupActivity extends AppCompatActivity {
     FloatingActionButton imagePicker;
     ImageView setupImage;
     EditText setupName;
+    EditText uniqueName;
     CardView setupBtn;
+    Dialog dialog;
 
     boolean isChanged = false;
     Uri mainImageURI = null;
@@ -66,7 +73,7 @@ public class SetupActivity extends AppCompatActivity {
             getWindow().setNavigationBarColor(Color.BLACK);
         }
 
-        final Dialog dialog = new Dialog(SetupActivity.this);
+        dialog = new Dialog(SetupActivity.this);
         Objects.requireNonNull(dialog.getWindow()).setBackgroundDrawableResource(android.R.color.transparent);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.progress_bar);
@@ -78,7 +85,16 @@ public class SetupActivity extends AppCompatActivity {
         storageReference = FirebaseStorage.getInstance().getReference();
 
         setupImage = findViewById(R.id.setup_image);
-        setupName = findViewById(R.id.setup_name);
+        setupName = findViewById(R.id.display_name);
+        uniqueName = findViewById(R.id.user_name);
+        uniqueName.setFilters(new InputFilter[]{
+                new InputFilter.AllCaps() {
+                    @Override
+                    public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                        return String.valueOf(source).toLowerCase().replace(" ", "");
+                    }
+                }
+        });
 
         firebaseFirestore
                 .collection("Users")
@@ -93,8 +109,11 @@ public class SetupActivity extends AppCompatActivity {
                             if (task.getResult().exists()) {
 
                                 dialog.dismiss();
-                                String name = task.getResult().getString("user_name");
-                                setupName.setText(name);
+                                String displayName = task.getResult().getString("user_name");
+                                setupName.setText(displayName);
+
+                                String userName = task.getResult().getString("unique_name");
+                                uniqueName.setText(userName);
 
                                 String image = task.getResult().getString("user_image");
 
@@ -110,16 +129,12 @@ public class SetupActivity extends AppCompatActivity {
                                 }
                             } else {
                                 dialog.dismiss();
-                                Toast
-                                        .makeText(SetupActivity.this, "No data available to retrive", Toast.LENGTH_SHORT)
-                                        .show();
+                                Toast.makeText(SetupActivity.this, "No data available to retrive", Toast.LENGTH_SHORT).show();
                             }
                         } else {
                             dialog.dismiss();
                             String e = Objects.requireNonNull(task.getException()).getMessage();
-                            Toast
-                                    .makeText(SetupActivity.this, "Database Error:" + e, Toast.LENGTH_SHORT)
-                                    .show();
+                            Toast.makeText(SetupActivity.this, "Database Error:" + e, Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -131,52 +146,58 @@ public class SetupActivity extends AppCompatActivity {
 
                 dialog.show();
                 final String user_name = setupName.getText().toString();
+                final String unique_name = uniqueName.getText().toString();
 
-                if (!TextUtils.isEmpty(user_name) && mainImageURI != null) {
+                if (!TextUtils.isEmpty(user_name) && !TextUtils.isEmpty(unique_name) && mainImageURI != null) {
 
-                    if (isChanged) {
+                    if (!unique_name.contains(" ")) {
 
-                        StorageReference image_path = storageReference
-                                .child("profile_images")
-                                .child(user_id + ".jpg");
+                        CollectionReference userRef = firebaseFirestore.collection("Users");
+                        Query query = userRef.whereEqualTo("unique_name", unique_name);
+                        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                            @Override
+                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
 
-                        image_path
-                                .putFile(mainImageURI)
-                                .addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                                if (task.isSuccessful()) {
+                                    for (DocumentSnapshot documentSnapshot : task.getResult()) {
+                                        String user = documentSnapshot.getString("unique_name");
 
-                                    @Override
-                                    public void onComplete(Task<UploadTask.TaskSnapshot> task) {
-
-                                        if (task.isSuccessful()) {
+                                        if (Objects.equals(user, unique_name)) {
                                             dialog.dismiss();
-                                            storeFirestore(task, user_name);
-                                        } else {
-                                            dialog.dismiss();
-                                            String e = Objects.requireNonNull(task.getException()).getMessage();
-                                            Toast
-                                                    .makeText(SetupActivity.this, "Image Error:" + e, Toast.LENGTH_SHORT)
-                                                    .show();
+                                            Toast.makeText(SetupActivity.this, "Username already exist!! Try different username :(", Toast.LENGTH_SHORT).show();
                                         }
                                     }
-                                });
+                                }
+                                if (task.getResult().size() == 0) {
+
+                                    StorageReference image_path = storageReference.child("profile_images").child(user_id + ".jpg");
+                                    image_path.putFile(mainImageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+
+                                        @Override
+                                        public void onComplete(Task<UploadTask.TaskSnapshot> task) {
+
+                                            if (task.isSuccessful()) {
+                                                storeFirestore(task, user_name, unique_name);
+                                            } else {
+                                                dialog.dismiss();
+                                                String e = Objects.requireNonNull(task.getException()).getMessage();
+                                                Toast.makeText(SetupActivity.this, "Image Error:" + e, Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    });
+                                }
+                            }
+                        });
                     } else {
-                        storeFirestore(null, user_name);
+                        dialog.dismiss();
+                        Toast.makeText(SetupActivity.this, "Username should not have spaces :(", Toast.LENGTH_SHORT).show();
                     }
-                } else if (TextUtils.isEmpty(user_name) && mainImageURI == null) {
-                    dialog.dismiss();
-                    Toast
-                            .makeText(SetupActivity.this, "Please choose your picture and enter your name", Toast.LENGTH_SHORT)
-                            .show();
                 } else if (mainImageURI == null) {
                     dialog.dismiss();
-                    Toast
-                            .makeText(SetupActivity.this, "Please choose your profile picture", Toast.LENGTH_SHORT)
-                            .show();
-                } else if (TextUtils.isEmpty(user_name)) {
+                    Toast.makeText(SetupActivity.this, "Profile picture is mandatory :(", Toast.LENGTH_SHORT).show();
+                } else if (TextUtils.isEmpty(user_name) && TextUtils.isEmpty(unique_name)) {
                     dialog.dismiss();
-                    Toast
-                            .makeText(SetupActivity.this, "Please enter your name", Toast.LENGTH_SHORT)
-                            .show();
+                    Toast.makeText(SetupActivity.this, "All fields are mandatory!!", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -200,7 +221,7 @@ public class SetupActivity extends AppCompatActivity {
         });
     }
 
-    private void storeFirestore(Task<UploadTask.TaskSnapshot> task, String user_name) {
+    private void storeFirestore(Task<UploadTask.TaskSnapshot> task, String user_name, String unique_name) {
 
         Uri download_uri;
 
@@ -211,7 +232,9 @@ public class SetupActivity extends AppCompatActivity {
         }
 
         Map<String, String> userMap = new HashMap<>();
+        userMap.put("user_id", user_id);
         userMap.put("user_name", user_name);
+        userMap.put("unique_name", unique_name.toLowerCase());
         userMap.put("user_image", download_uri.toString());
 
         firebaseFirestore
@@ -230,11 +253,9 @@ public class SetupActivity extends AppCompatActivity {
                             startActivity(setUpIntent);
                             finish();
                         } else {
-
+                            dialog.dismiss();
                             String e = Objects.requireNonNull(task.getException()).getMessage();
-                            Toast
-                                    .makeText(SetupActivity.this, "Database Error:" + e, Toast.LENGTH_SHORT)
-                                    .show();
+                            Toast.makeText(SetupActivity.this, "Database Error:" + e, Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -274,9 +295,7 @@ public class SetupActivity extends AppCompatActivity {
                 isChanged = true;
             } else if (resultCode == CropImage.CROP_IMAGE_ACTIVITY_RESULT_ERROR_CODE) {
                 Exception error = Objects.requireNonNull(result).getError();
-                Toast
-                        .makeText(this, "Error:" + error, Toast.LENGTH_SHORT)
-                        .show();
+                Toast.makeText(this, "Error:" + error, Toast.LENGTH_SHORT).show();
             }
         }
     }

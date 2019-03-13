@@ -13,6 +13,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.text.InputFilter;
+import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
@@ -28,8 +30,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -50,7 +55,8 @@ public class EditProfileActivity extends AppCompatActivity {
     FirebaseAuth mAuth;
 
     CircleImageView userImage;
-    EditText userName;
+    EditText userDisplayName;
+    EditText userUniqueName;
     EditText userWebsite;
     EditText userBio;
     EditText fbUsername;
@@ -70,6 +76,8 @@ public class EditProfileActivity extends AppCompatActivity {
 
     boolean isChanged = false;
     Uri mainImageURI = null;
+    String oldUniqueName;
+    String unique_name;
     String user_id;
     String Male = "Male";
     String Female = "Female";
@@ -79,9 +87,8 @@ public class EditProfileActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_profile);
 
-        if (Build.VERSION.SDK_INT >= 21 && Build.VERSION.SDK_INT < 23) {
-            getWindow().setStatusBarColor(getResources().getColor(R.color.colorGray));
-        } else if (Build.VERSION.SDK_INT >= 23) {
+        if (Build.VERSION.SDK_INT >= 21) {
+            getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimary));
             getWindow().setNavigationBarColor(Color.BLACK);
         }
 
@@ -95,8 +102,18 @@ public class EditProfileActivity extends AppCompatActivity {
             }
         });
 
+        userUniqueName = findViewById(R.id.edit_user_username);
+        userUniqueName.setFilters(new InputFilter[]{
+                new InputFilter.AllCaps() {
+                    @Override
+                    public CharSequence filter(CharSequence source, int start, int end, Spanned dest, int dstart, int dend) {
+                        return String.valueOf(source).toLowerCase().replace(" ", "");
+                    }
+                }
+        });
+
         userImage = findViewById(R.id.edit_user_image);
-        userName = findViewById(R.id.edit_user_name);
+        userDisplayName = findViewById(R.id.edit_user_display_name);
         userWebsite = findViewById(R.id.edit_user_website);
         userBio = findViewById(R.id.edit_user_bio);
 
@@ -222,8 +239,11 @@ public class EditProfileActivity extends AppCompatActivity {
                                             .into(userImage);
                                 }
 
-                                String name = task.getResult().getString("user_name");
-                                userName.setText(name);
+                                String displayname = task.getResult().getString("user_name");
+                                userDisplayName.setText(displayname);
+
+                                oldUniqueName = task.getResult().getString("unique_name");
+                                userUniqueName.setText(oldUniqueName);
 
                                 String website = task.getResult().getString("user_website");
                                 userWebsite.setText(website);
@@ -330,43 +350,98 @@ public class EditProfileActivity extends AppCompatActivity {
     private void saveProfileSettings() {
 
         dialog.show();
+        final String display_name = userDisplayName.getText().toString();
+        unique_name = userUniqueName.getText().toString();
 
-        final String user_name = userName.getText().toString();
+        if (!TextUtils.isEmpty(display_name) && !TextUtils.isEmpty(unique_name)) {
 
-        if (!TextUtils.isEmpty(user_name)) {
+            if (!unique_name.contains(" ")) {
 
-            if (isChanged) {
+                if (!oldUniqueName.equals(unique_name)) {
 
-                StorageReference image_path = mStore.child("profile_images").child(user_id + ".jpg");
-                image_path.putFile(mainImageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                    CollectionReference userRef = mFirestore.collection("Users");
+                    Query query = userRef.whereEqualTo("unique_name", unique_name);
+                    query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                        @Override
+                        public void onComplete(@NonNull Task<QuerySnapshot> task) {
 
-                    @Override
-                    public void onComplete(Task<UploadTask.TaskSnapshot> task) {
+                            if (task.isSuccessful()) {
+                                for (DocumentSnapshot documentSnapshot : task.getResult()) {
+                                    String user = documentSnapshot.getString("unique_name");
 
-                        if (task.isSuccessful()) {
+                                    if (Objects.equals(user, unique_name)) {
+                                        dialog.dismiss();
+                                        Toast.makeText(EditProfileActivity.this, "Username already exist!! Try different username :(", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            }
+                            if (task.getResult().size() == 0) {
 
-                            storeData(task, user_name);
-                        } else {
+                                if (isChanged) {
 
-                            dialog.dismiss();
-                            storeData(null, user_name);
-                            String e = Objects.requireNonNull(task.getException()).getMessage();
-                            Toast.makeText(EditProfileActivity.this, "Image Error:" + e, Toast.LENGTH_SHORT).show();
+                                    StorageReference image_path = mStore.child("profile_images").child(user_id + ".jpg");
+                                    image_path.putFile(mainImageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+
+                                        @Override
+                                        public void onComplete(Task<UploadTask.TaskSnapshot> task) {
+
+                                            if (task.isSuccessful()) {
+
+                                                storeData(task, display_name, unique_name);
+                                            } else {
+
+                                                dialog.dismiss();
+                                                storeData(null, display_name, unique_name);
+                                                String e = Objects.requireNonNull(task.getException()).getMessage();
+                                                Toast.makeText(EditProfileActivity.this, "Image Error:" + e, Toast.LENGTH_SHORT).show();
+                                            }
+                                        }
+                                    });
+                                } else {
+
+                                    storeData(null, display_name, unique_name);
+                                }
+                            }
                         }
-                    }
-                });
-            } else {
+                    });
+                } else {
+                    if (isChanged) {
 
-                storeData(null, user_name);
+                        StorageReference image_path = mStore.child("profile_images").child(user_id + ".jpg");
+                        image_path.putFile(mainImageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+
+                            @Override
+                            public void onComplete(Task<UploadTask.TaskSnapshot> task) {
+
+                                if (task.isSuccessful()) {
+
+                                    storeData(task, display_name, unique_name);
+                                } else {
+
+                                    dialog.dismiss();
+                                    storeData(null, display_name, unique_name);
+                                    String e = Objects.requireNonNull(task.getException()).getMessage();
+                                    Toast.makeText(EditProfileActivity.this, "Image Error:" + e, Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
+                    } else {
+
+                        storeData(null, display_name, unique_name);
+                    }
+                }
+            } else {
+                dialog.dismiss();
+                Toast.makeText(this, "Username should not have spaces :(", Toast.LENGTH_SHORT).show();
             }
         } else {
 
             dialog.dismiss();
-            Toast.makeText(this, "Users must have a name :(", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Users must have a display name and username :(", Toast.LENGTH_SHORT).show();
         }
     }
 
-    private void storeData(Task<UploadTask.TaskSnapshot> task, String user_name) {
+    private void storeData(Task<UploadTask.TaskSnapshot> task, String user_name, String unique_name) {
 
         Uri download_uri;
 
@@ -388,6 +463,7 @@ public class EditProfileActivity extends AppCompatActivity {
         userMap.put("user_id", user_id);
         userMap.put("user_image", download_uri.toString());
         userMap.put("user_name", user_name);
+        userMap.put("unique_name", unique_name.toLowerCase());
         userMap.put("user_website", user_website);
         userMap.put("user_bio", user_Bio);
         userMap.put("user_gender", user_gender);

@@ -10,14 +10,14 @@
         android:id="@+id/newPostToolbar"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="?android:attr/windowBackground"
+        android:background="@color/colorPrimary"
         android:elevation="4dp"
         app:layout_constraintBottom_toTopOf="@+id/scrollView3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:title="New Post"
-        app:titleTextColor="@color/colorGray" />
+        app:titleTextColor="@color/colorWhite" />
 
     <ScrollView
         android:id="@+id/scrollView3"

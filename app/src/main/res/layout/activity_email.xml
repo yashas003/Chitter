@@ -10,13 +10,14 @@
         android:id="@+id/edit_email_toolbar"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:background="?android:attr/windowBackground"
+        android:background="@color/colorPrimary"
         android:elevation="4dp"
         app:layout_constraintBottom_toTopOf="@+id/constraintLayout4"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:title="Change Email" />
+        app:title="Change Email"
+        app:titleTextColor="@color/colorWhite" />
 
     <android.support.constraint.ConstraintLayout
         android:id="@+id/constraintLayout4"

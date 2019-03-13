@@ -9,7 +9,8 @@
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="?android:attr/windowBackground"
+        android:background="@color/colorPrimary"
+        app:layout_constraintBottom_toTopOf="@+id/recycler_view"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
@@ -38,7 +39,8 @@
                 android:background="@android:color/transparent"
                 android:hint="Search"
                 android:inputType="textPersonName"
-                android:textColor="@color/colorGray"
+                android:textColor="@color/colorWhite"
+                android:textColorHint="@color/colorCream"
                 tools:ignore="Autofill,HardcodedText,RtlHardcoded" />
 
         </android.support.v7.widget.Toolbar>
@@ -49,6 +51,7 @@
         android:id="@+id/recycler_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
+        android:paddingBottom="48dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

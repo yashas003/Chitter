@@ -2,13 +2,13 @@ package com.blogspot.yashas003.chitter.Model;
 
 public class Users {
 
-    private String user_id, user_image, user_name, user_bio;
+    private String user_id, user_image, user_name, unique_name;
 
-    public Users(String user_id, String user_image, String user_name, String user_bio) {
+    public Users(String user_id, String user_image, String user_name, String unique_name) {
         this.user_id = user_id;
         this.user_image = user_image;
         this.user_name = user_name;
-        this.user_bio = user_bio;
+        this.unique_name = unique_name;
     }
 
     public Users() {
@@ -38,11 +38,11 @@ public class Users {
         this.user_name = user_name;
     }
 
-    public String getUser_bio() {
-        return user_bio;
+    public String getUnique_name() {
+        return unique_name;
     }
 
-    public void setUser_bio(String user_bio) {
-        this.user_bio = user_bio;
+    public void setUnique_name(String unique_name) {
+        this.unique_name = unique_name;
     }
 }

@@ -5,17 +5,24 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.support.v7.widget.Toolbar
-        android:id="@+id/likes_toolbar"
+    <android.support.design.widget.AppBarLayout
+        android:id="@+id/appBarLayout2"
         android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:layout_marginTop="24dp"
-        android:background="@android:color/transparent"
-        android:elevation="0dp"
+        android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:titleTextColor="@color/colorGray" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/likes_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:layout_marginTop="24dp"
+            android:background="@color/colorPrimary"
+            android:elevation="0dp"
+            app:titleTextColor="@color/colorWhite" />
+
+    </android.support.design.widget.AppBarLayout>
 
     <TextView
         android:layout_width="wrap_content"
@@ -30,7 +37,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/likes_toolbar"
+        app:layout_constraintTop_toBottomOf="@+id/appBarLayout2"
         tools:ignore="HardcodedText" />
 
 </android.support.constraint.ConstraintLayout>

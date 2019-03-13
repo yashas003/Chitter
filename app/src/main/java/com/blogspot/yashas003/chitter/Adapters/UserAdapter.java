@@ -47,9 +47,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
         viewHolder.userName.setText(users.getUser_name());
         Picasso.get().load(users.getUser_image()).into(viewHolder.userImage);
 
-        if (users.getUser_bio() != null && !users.getUser_bio().trim().isEmpty()) {
-            viewHolder.userBio.setVisibility(View.VISIBLE);
-            viewHolder.userBio.setText(users.getUser_bio());
+        if (users.getUnique_name() != null && !users.getUnique_name().trim().isEmpty()) {
+            viewHolder.uniqueName.setVisibility(View.VISIBLE);
+            viewHolder.uniqueName.setText(users.getUnique_name());
         }
 
         if (users.getUser_id().equals(firebaseUser.getUid())) {
@@ -84,7 +84,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
 
         CircleImageView userImage;
         TextView userName;
-        TextView userBio;
+        TextView uniqueName;
         CardView followBtn;
         TextView followBtnText;
 
@@ -93,7 +93,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
 
             userImage = itemView.findViewById(R.id.profile_image);
             userName = itemView.findViewById(R.id.user_name);
-            userBio = itemView.findViewById(R.id.user_bio);
+            uniqueName = itemView.findViewById(R.id.unique_name);
             followBtn = itemView.findViewById(R.id.btn_follow);
             followBtnText = itemView.findViewById(R.id.btn_follow_text);
         }

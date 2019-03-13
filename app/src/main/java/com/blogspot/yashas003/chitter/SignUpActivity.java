@@ -11,7 +11,6 @@ import android.support.v7.widget.CardView;
 import android.text.TextUtils;
 import android.view.View;
 import android.view.Window;
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -38,11 +37,8 @@ public class SignUpActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sign_up);
 
-        if (Build.VERSION.SDK_INT >= 21 && Build.VERSION.SDK_INT < 23) {
-            getWindow().setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS, WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            getWindow().setStatusBarColor(Color.TRANSPARENT);
-        } else if (Build.VERSION.SDK_INT >= 23) {
-            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN | View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        if (Build.VERSION.SDK_INT >= 21) {
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
             getWindow().setStatusBarColor(Color.TRANSPARENT);
             getWindow().setNavigationBarColor(Color.BLACK);
         }
