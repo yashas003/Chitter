@@ -16,6 +16,11 @@ import com.blogspot.yashas003.chitter.Model.Users;
 import com.blogspot.yashas003.chitter.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -25,6 +30,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
 
     private List<Users> users_list;
+    private FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
     public UserAdapter(List<Users> users_list) {
         this.users_list = users_list;
@@ -39,22 +45,48 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull viewHolder viewHolder, int i) {
+    public void onBindViewHolder(@NonNull final viewHolder viewHolder, int i) {
 
         final Users users = users_list.get(i);
-        FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
         viewHolder.userName.setText(users.getUser_name());
         Picasso.get().load(users.getUser_image()).into(viewHolder.userImage);
+        isFollowing(users.getUser_id(), firebaseUser.getUid(), viewHolder.followBtnText, viewHolder.followBtn);
 
         if (users.getUnique_name() != null && !users.getUnique_name().trim().isEmpty()) {
             viewHolder.uniqueName.setVisibility(View.VISIBLE);
             viewHolder.uniqueName.setText(users.getUnique_name());
         }
 
-        if (users.getUser_id().equals(firebaseUser.getUid())) {
-            viewHolder.followBtn.setVisibility(View.GONE);
-        }
+        viewHolder.followBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (viewHolder.followBtnText.getText().toString().equals("Follow")) {
+
+                    FirebaseDatabase.getInstance().getReference()
+                            .child("Follow").child(firebaseUser.getUid())
+                            .child("following").child(users.getUser_id())
+                            .setValue(true);
+
+                    FirebaseDatabase.getInstance().getReference()
+                            .child("Follow").child(users.getUser_id())
+                            .child("followers").child(firebaseUser.getUid())
+                            .setValue(true);
+                } else {
+
+                    FirebaseDatabase.getInstance().getReference()
+                            .child("Follow").child(firebaseUser.getUid())
+                            .child("following").child(users.getUser_id())
+                            .removeValue();
+
+                    FirebaseDatabase.getInstance().getReference()
+                            .child("Follow").child(users.getUser_id())
+                            .child("followers").child(firebaseUser.getUid())
+                            .removeValue();
+                }
+            }
+        });
 
         viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -97,5 +129,36 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
             followBtn = itemView.findViewById(R.id.btn_follow);
             followBtnText = itemView.findViewById(R.id.btn_follow_text);
         }
+    }
+
+    private void isFollowing(final String userID, final String firebaseUser, final TextView btnText, final CardView btn) {
+
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference()
+                .child("Follow").child(firebaseUser).child("following");
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.child(userID).exists()) {
+
+                    if (userID.equals(firebaseUser)) {
+                        btn.setVisibility(View.GONE);
+                    } else {
+                        btn.setVisibility(View.VISIBLE);
+                        btnText.setText("Following");
+                    }
+                } else {
+                    if (userID.equals(firebaseUser)) {
+                        btn.setVisibility(View.GONE);
+                    } else {
+                        btn.setVisibility(View.VISIBLE);
+                        btnText.setText("Follow");
+                    }
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
     }
 }

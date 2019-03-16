@@ -26,7 +26,7 @@ import java.util.Objects;
 
 public class SignUpActivity extends AppCompatActivity {
     FirebaseAuth mAuth;
-    TextView signUp_name;
+    TextView login;
     ImageView signUp_image;
     EditText signUpEmailText;
     EditText signUpPassText;
@@ -44,10 +44,19 @@ public class SignUpActivity extends AppCompatActivity {
         }
 
         mAuth = FirebaseAuth.getInstance();
-        signUp_name = findViewById(R.id.signUp_app_title);
         signUp_image = findViewById(R.id.signUp_app_image);
         signUpEmailText = findViewById(R.id.signUp_email);
         signUpPassText = findViewById(R.id.signUp_password);
+
+        login = findViewById(R.id.reg_login_button);
+        login.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent loginIntent = new Intent(SignUpActivity.this, LoginActivity.class);
+                startActivity(loginIntent);
+                finish();
+            }
+        });
 
         signUpBtn = findViewById(R.id.signUp_btn);
         signUpBtn.setOnClickListener(new View.OnClickListener() {

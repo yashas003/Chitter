@@ -10,6 +10,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -18,7 +19,9 @@ import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
@@ -27,7 +30,6 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
-import android.text.format.Time;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -94,7 +96,6 @@ public class ProfileFragment extends Fragment {
     ImageView saveImage;
     CardView editBtn;
     Toolbar toolbar;
-    Time time;
 
     FirebaseFirestore firebaseFirestore;
     FirebaseAuth mAuth;
@@ -127,9 +128,6 @@ public class ProfileFragment extends Fragment {
         toolbar = view.findViewById(R.id.profile_toolbar);
         AppCompatActivity activity = (AppCompatActivity) getActivity();
         activity.setSupportActionBar(toolbar);
-
-        time = new Time();
-        time.setToNow();
 
         ctl = view.findViewById(R.id.collapsingToolbar);
         ctl.setExpandedTitleColor(getResources().getColor(android.R.color.transparent));
@@ -285,27 +283,41 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
-                Bitmap bitmap = ((BitmapDrawable) saveImage.getDrawable()).getBitmap();
-                String date = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
-                String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-                File myDir = new File(root + "/Chitter");
-                myDir.mkdirs();
-                String imageName = name + "-" + date + ".jpg";
-                File file = new File(myDir, imageName);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
-                try {
-                    Toast.makeText(getActivity(), "Image saved to gallery :)", Toast.LENGTH_SHORT).show();
-                    FileOutputStream out = new FileOutputStream(file);
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
-                    out.flush();
-                    out.close();
-
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    if (ContextCompat.checkSelfPermission(getActivity(), android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                    } else {
+                        saveImageToGallery();
+                    }
+                } else {
+                    saveImageToGallery();
                 }
-                MediaScannerConnection.scanFile(getContext(), new String[]{String.valueOf(file)}, null, null);
             }
         });
+    }
+
+    private void saveImageToGallery() {
+
+        Bitmap bitmap = ((BitmapDrawable) saveImage.getDrawable()).getBitmap();
+        String date = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
+        String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+        File myDir = new File(root + "/Chitter");
+        myDir.mkdirs();
+        String imageName = name + "-" + date + ".jpg";
+        File file = new File(myDir, imageName);
+
+        try {
+            Toast.makeText(getActivity(), "Image saved to gallery :)", Toast.LENGTH_SHORT).show();
+            FileOutputStream out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+            out.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        MediaScannerConnection.scanFile(getContext(), new String[]{String.valueOf(file)}, null, null);
     }
 
     private void visitFacebook() {

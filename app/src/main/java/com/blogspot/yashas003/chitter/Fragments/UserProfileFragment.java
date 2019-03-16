@@ -10,6 +10,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.annotation.NonNull;
@@ -18,7 +19,9 @@ import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
@@ -43,6 +46,13 @@ import com.blogspot.yashas003.chitter.BuildConfig;
 import com.blogspot.yashas003.chitter.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.nightonke.boommenu.BoomButtons.BoomButton;
@@ -105,6 +115,7 @@ public class UserProfileFragment extends Fragment {
     ArrayList<String> mImageUrls = new ArrayList<>();
 
     FirebaseFirestore mFirestore;
+    FirebaseUser firebaseUser;
 
     @Nullable
     @Override
@@ -130,6 +141,8 @@ public class UserProfileFragment extends Fragment {
         time = new Time();
         time.setToNow();
 
+        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+
         collapseBar = view.findViewById(R.id.collapsingToolbar);
         collapseBar.setExpandedTitleColor(getResources().getColor(android.R.color.transparent));
         collapseBar.setCollapsedTitleTextAppearance(R.style.CollapsedAppBar);
@@ -137,8 +150,17 @@ public class UserProfileFragment extends Fragment {
         backgroundPic = view.findViewById(R.id.back_picture);
         displayProfileName = view.findViewById(R.id.user_name);
         userProfileBio = view.findViewById(R.id.unique_name);
-        followBtn = view.findViewById(R.id.follow_btn);
         followBtnText = view.findViewById(R.id.follow_btn_text);
+
+        isFollowing(user_id, followBtnText);
+
+        followBtn = view.findViewById(R.id.follow_btn);
+        followBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                followUser();
+            }
+        });
 
         progressBar = view.findViewById(R.id.user_progress);
         progressBar.setVisibility(View.VISIBLE);
@@ -211,6 +233,33 @@ public class UserProfileFragment extends Fragment {
         });
 
         return view;
+    }
+
+    private void followUser() {
+
+        if (followBtnText.getText().toString().equals("Follow")) {
+
+            FirebaseDatabase.getInstance().getReference()
+                    .child("Follow").child(firebaseUser.getUid())
+                    .child("following").child(user_id)
+                    .setValue(true);
+
+            FirebaseDatabase.getInstance().getReference()
+                    .child("Follow").child(user_id)
+                    .child("followers").child(firebaseUser.getUid())
+                    .setValue(true);
+        } else {
+
+            FirebaseDatabase.getInstance().getReference()
+                    .child("Follow").child(firebaseUser.getUid())
+                    .child("following").child(user_id)
+                    .removeValue();
+
+            FirebaseDatabase.getInstance().getReference()
+                    .child("Follow").child(user_id)
+                    .child("followers").child(firebaseUser.getUid())
+                    .removeValue();
+        }
     }
 
     private void visitFacebook() {
@@ -359,27 +408,41 @@ public class UserProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
 
-                Bitmap bitmap = ((BitmapDrawable) saveProfileImage.getDrawable()).getBitmap();
-                String date = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
-                String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
-                File myDir = new File(root + "/Chitter");
-                myDir.mkdirs();
-                String imageName = name + "-" + date + ".jpg";
-                File file = new File(myDir, imageName);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 
-                try {
-                    Toast.makeText(getActivity(), "Image saved to gallery :)", Toast.LENGTH_SHORT).show();
-                    FileOutputStream out = new FileOutputStream(file);
-                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
-                    out.flush();
-                    out.close();
-
-                } catch (Exception e) {
-                    e.printStackTrace();
+                    if (ContextCompat.checkSelfPermission(getActivity(), android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 1);
+                    } else {
+                        saveImageToGallery();
+                    }
+                } else {
+                    saveImageToGallery();
                 }
-                MediaScannerConnection.scanFile(getContext(), new String[]{String.valueOf(file)}, null, null);
             }
         });
+    }
+
+    private void saveImageToGallery() {
+
+        Bitmap bitmap = ((BitmapDrawable) saveProfileImage.getDrawable()).getBitmap();
+        String date = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
+        String root = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES).toString();
+        File myDir = new File(root + "/Chitter");
+        myDir.mkdirs();
+        String imageName = name + "-" + date + ".jpg";
+        File file = new File(myDir, imageName);
+
+        try {
+            Toast.makeText(getActivity(), "Image saved to gallery :)", Toast.LENGTH_SHORT).show();
+            FileOutputStream out = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+            out.flush();
+            out.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        MediaScannerConnection.scanFile(getContext(), new String[]{String.valueOf(file)}, null, null);
     }
 
     @Override
@@ -555,5 +618,25 @@ public class UserProfileFragment extends Fragment {
         StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(NUM_COLUMNS, LinearLayoutManager.VERTICAL);
         postsRecyclerView.setLayoutManager(staggeredGridLayoutManager);
         postsRecyclerView.setAdapter(staggeredRecyclerViewAdapter);
+    }
+
+    private void isFollowing(final String userID, final TextView btnText) {
+
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference()
+                .child("Follow").child(firebaseUser.getUid()).child("following");
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.child(userID).exists()) {
+                    btnText.setText("Following");
+                } else {
+                    btnText.setText("Follow");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
     }
 }

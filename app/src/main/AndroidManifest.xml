@@ -52,6 +52,7 @@
         <activity android:name=".OtpActivity" />
         <activity android:name=".EmailActivity" />
         <activity android:name=".SettingsActivity" />
+        <activity android:name=".StartPageActivity"></activity>
     </application>
 
 </manifest>

@@ -293,9 +293,7 @@ public class EditProfileActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
         if (ContextCompat.checkSelfPermission(EditProfileActivity.this, android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            Toast
-                    .makeText(this, "Permission denied", Toast.LENGTH_SHORT)
-                    .show();
+            Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show();
         } else {
             pickImage();
         }
@@ -359,8 +357,8 @@ public class EditProfileActivity extends AppCompatActivity {
 
                 if (!oldUniqueName.equals(unique_name)) {
 
-                    CollectionReference userRef = mFirestore.collection("Users");
-                    Query query = userRef.whereEqualTo("unique_name", unique_name);
+                    final CollectionReference userRef = mFirestore.collection("Users");
+                    final Query query = userRef.whereEqualTo("unique_name", unique_name);
                     query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                         @Override
                         public void onComplete(@NonNull Task<QuerySnapshot> task) {

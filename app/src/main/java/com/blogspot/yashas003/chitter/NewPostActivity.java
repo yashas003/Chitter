@@ -182,9 +182,9 @@ public class NewPostActivity extends AppCompatActivity {
                                 String downloadThumbUri = taskSnapshot.getDownloadUrl().toString();
 
                                 Map<String, Object> postMap = new HashMap<>();
-                                postMap.put("image_Url", downLoadUri);
+                                postMap.put("image_url", downLoadUri);
                                 postMap.put("thumb", downloadThumbUri);
-                                postMap.put("description", desc);
+                                postMap.put("desc", desc);
                                 postMap.put("user_id", user_id);
                                 postMap.put("time", FieldValue.serverTimestamp());
 

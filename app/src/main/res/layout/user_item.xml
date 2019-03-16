@@ -29,6 +29,7 @@
         android:clickable="true"
         android:focusable="true"
         android:foreground="@drawable/ripple_effect"
+        android:visibility="gone"
         app:cardBackgroundColor="@color/colorPrimary"
         app:cardCornerRadius="8dp"
         app:cardElevation="1dp"

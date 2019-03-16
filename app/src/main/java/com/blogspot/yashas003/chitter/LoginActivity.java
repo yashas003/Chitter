@@ -1,6 +1,5 @@
 package com.blogspot.yashas003.chitter;
 
-import android.app.ActivityOptions;
 import android.app.Dialog;
 import android.content.Intent;
 import android.graphics.Color;
@@ -10,7 +9,6 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.text.TextUtils;
-import android.util.Pair;
 import android.view.View;
 import android.view.Window;
 import android.widget.EditText;
@@ -58,22 +56,13 @@ public class LoginActivity extends AppCompatActivity {
         signUp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
                 Intent intent = new Intent(LoginActivity.this, SignUpActivity.class);
-
-                Pair[] pairs = new Pair[5];
-                pairs[0] = new Pair<View, String>(login_image, "leaf");
-                pairs[1] = new Pair<View, String>(login_name, "name");
-                pairs[2] = new Pair<View, String>(loginEmailText, "email_text");
-                pairs[3] = new Pair<View, String>(loginPassText, "email_password");
-                pairs[4] = new Pair<View, String>(loginBtn, "button");
-
-                ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(LoginActivity.this, pairs);
-                startActivity(intent, options.toBundle());
+                startActivity(intent);
+                finish();
             }
         });
 
-        loginBtn = findViewById(R.id.login_btn);
+        loginBtn = findViewById(R.id.start_page_login_btn);
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -131,14 +120,6 @@ public class LoginActivity extends AppCompatActivity {
         Intent loginIntent = new Intent(LoginActivity.this, MainActivity.class);
         startActivity(loginIntent);
         finish();
-    }
-
-    @Override
-    public void onBackPressed() {
-        Intent a = new Intent(Intent.ACTION_MAIN);
-        a.addCategory(Intent.CATEGORY_HOME);
-        a.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        startActivity(a);
     }
 }
 
