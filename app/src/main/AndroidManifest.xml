@@ -8,29 +8,30 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
+        android:name=".Utils.FirebaseHandler"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
-        tools:ignore="AllowBackup,GoogleAppIndexingWarning">
-        <activity android:name=".SplashActivity">
+        tools:ignore="AllowBackup,GoogleAppIndexingWarning,InnerclassSeparator">
+        <activity android:name=".Activities.SplashActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".LoginActivity" />
-        <activity android:name=".SetupActivity" />
-        <activity android:name=".SignUpActivity" />
-        <activity android:name=".MainActivity" />
+        <activity android:name=".Activities.LoginActivity" />
+        <activity android:name=".Activities.SetupActivity" />
+        <activity android:name=".Activities.SignUpActivity" />
+        <activity android:name=".Activities.MainActivity" />
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
         <activity
-            android:name=".NewPostActivity"
+            android:name=".Activities.NewPostActivity"
             android:windowSoftInputMode="stateHidden" />
 
         <meta-data
@@ -47,12 +48,12 @@
                 android:resource="@xml/filepaths" />
         </provider>
 
-        <activity android:name=".EditProfileActivity" />
-        <activity android:name=".PhNoActivity" />
-        <activity android:name=".OtpActivity" />
-        <activity android:name=".EmailActivity" />
-        <activity android:name=".SettingsActivity" />
-        <activity android:name=".StartPageActivity"></activity>
+        <activity android:name=".Activities.EditProfileActivity" />
+        <activity android:name=".Activities.PhNoActivity" />
+        <activity android:name=".Activities.OtpActivity" />
+        <activity android:name=".Activities.EmailActivity" />
+        <activity android:name=".Activities.SettingsActivity" />
+        <activity android:name=".Activities.StartPageActivity" />
     </application>
 
 </manifest>

@@ -1,4 +1,4 @@
-package com.blogspot.yashas003.chitter;
+package com.blogspot.yashas003.chitter.Activities;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -10,8 +10,10 @@ import android.support.v7.widget.CardView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
+import com.blogspot.yashas003.chitter.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.TaskExecutors;
@@ -21,17 +23,17 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
-import com.wang.avi.AVLoadingIndicatorView;
 
 import java.util.concurrent.TimeUnit;
 
 public class OtpActivity extends AppCompatActivity {
-    AVLoadingIndicatorView loader;
+    ProgressBar loader;
     FirebaseUser user;
     CardView verifyBtn;
     Toolbar toolbar;
     EditText editText;
     String verificationId;
+
     private PhoneAuthProvider.OnVerificationStateChangedCallbacks
             mCallBack = new PhoneAuthProvider.OnVerificationStateChangedCallbacks() {
 

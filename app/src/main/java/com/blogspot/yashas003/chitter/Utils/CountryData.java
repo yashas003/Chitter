@@ -1,8 +1,8 @@
-package com.blogspot.yashas003.chitter;
+package com.blogspot.yashas003.chitter.Utils;
 
-class CountryData {
+public class CountryData {
 
-    static final String[] countryNames = {
+    public static final String[] countryNames = {
 
             "India", "Afghanistan", "Albania",
             "Algeria", "Andorra", "Angola", "Antarctica", "Argentina",
@@ -50,7 +50,7 @@ class CountryData {
             "Wallis And Futuna", "Yemen", "Zambia", "Zimbabwe"
     };
 
-    static final String[] countryAreaCodes = {
+    public static final String[] countryAreaCodes = {
 
             "91", "93", "355", "213",
             "376", "244", "672", "54", "374", "297", "61", "43", "994", "973",

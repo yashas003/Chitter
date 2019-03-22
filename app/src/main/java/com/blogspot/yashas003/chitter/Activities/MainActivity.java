@@ -1,4 +1,4 @@
-package com.blogspot.yashas003.chitter;
+package com.blogspot.yashas003.chitter.Activities;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -16,6 +16,7 @@ import com.blogspot.yashas003.chitter.Fragments.HomeFragment;
 import com.blogspot.yashas003.chitter.Fragments.LikesFragment;
 import com.blogspot.yashas003.chitter.Fragments.ProfileFragment;
 import com.blogspot.yashas003.chitter.Fragments.SearchFragment;
+import com.blogspot.yashas003.chitter.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
@@ -78,9 +79,10 @@ public class MainActivity extends AppCompatActivity {
         btmNav.setOnNavigationItemSelectedListener(navListener);
         getSupportFragmentManager().beginTransaction().replace(R.id.fragment_container, new HomeFragment()).commit();
 
-        fm = getSupportFragmentManager();
-        firestore = FirebaseFirestore.getInstance();
         mAuth = FirebaseAuth.getInstance();
+        firestore = FirebaseFirestore.getInstance();
+
+        fm = getSupportFragmentManager();
     }
 
     @Override

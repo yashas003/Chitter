@@ -1,4 +1,4 @@
-package com.blogspot.yashas003.chitter;
+package com.blogspot.yashas003.chitter.Activities;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -8,6 +8,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.CardView;
 import android.view.View;
 import android.widget.TextView;
+
+import com.blogspot.yashas003.chitter.R;
 
 public class StartPageActivity extends AppCompatActivity {
     CardView loginButton;
@@ -31,6 +33,7 @@ public class StartPageActivity extends AppCompatActivity {
 
                 Intent login = new Intent(StartPageActivity.this, LoginActivity.class);
                 startActivity(login);
+                finish();
             }
         });
 
@@ -41,6 +44,7 @@ public class StartPageActivity extends AppCompatActivity {
 
                 Intent sign = new Intent(StartPageActivity.this, SignUpActivity.class);
                 startActivity(sign);
+                finish();
             }
         });
     }

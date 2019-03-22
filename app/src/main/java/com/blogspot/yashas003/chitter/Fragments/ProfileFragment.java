@@ -30,6 +30,7 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,19 +39,25 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.blogspot.yashas003.chitter.Activities.EditProfileActivity;
+import com.blogspot.yashas003.chitter.Activities.SettingsActivity;
 import com.blogspot.yashas003.chitter.Adapters.StaggeredRecyclerViewAdapter;
 import com.blogspot.yashas003.chitter.BuildConfig;
-import com.blogspot.yashas003.chitter.EditProfileActivity;
+import com.blogspot.yashas003.chitter.Model.Posts;
 import com.blogspot.yashas003.chitter.R;
-import com.blogspot.yashas003.chitter.SettingsActivity;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.nightonke.boommenu.BoomButtons.BoomButton;
 import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
 import com.nightonke.boommenu.BoomButtons.SimpleCircleButton;
@@ -61,18 +68,20 @@ import com.nightonke.boommenu.Piece.PiecePlaceEnum;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
-import com.wang.avi.AVLoadingIndicatorView;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+
+import static android.support.constraint.Constraints.TAG;
 
 public class ProfileFragment extends Fragment {
     static final int NUM_COLUMNS = 2;
@@ -80,7 +89,9 @@ public class ProfileFragment extends Fragment {
     Menu menu;
     MenuItem menuItem;
 
-    AVLoadingIndicatorView spinner;
+    StaggeredRecyclerViewAdapter staggeredRecyclerViewAdapter;
+    StaggeredGridLayoutManager staggeredGridLayoutManager;
+    ProgressBar spinner;
     ConstraintLayout downloadImage;
     ConstraintLayout shareImage;
     ConstraintLayout likeImage;
@@ -90,6 +101,7 @@ public class ProfileFragment extends Fragment {
     TextView displayName;
     TextView userBio;
     TextView btnText;
+    TextView noPosts;
     AppBarLayout abl;
     BoomMenuButton bmb;
     ImageView backPic;
@@ -110,7 +122,7 @@ public class ProfileFragment extends Fragment {
     String image;
     String name;
     String bio;
-    ArrayList<String> mImageUrls = new ArrayList<>();
+    ArrayList<Posts> mImageUrls = new ArrayList<>();
 
     @Nullable
     @Override
@@ -134,21 +146,21 @@ public class ProfileFragment extends Fragment {
         ctl.setCollapsedTitleTextAppearance(R.style.CollapsedAppBar);
 
         mAuth = FirebaseAuth.getInstance();
+        firebaseFirestore = FirebaseFirestore.getInstance();
         user_id = mAuth.getCurrentUser().getUid();
 
         backPic = view.findViewById(R.id.back_picture);
         displayName = view.findViewById(R.id.user_name);
         userBio = view.findViewById(R.id.unique_name);
         btnText = view.findViewById(R.id.button_text);
+        recyclerView = view.findViewById(R.id.posts_recyclerView);
+        noPosts = view.findViewById(R.id.no_posts);
 
         spinner = view.findViewById(R.id.progressBar);
         spinner.setVisibility(View.VISIBLE);
 
         abl = view.findViewById(R.id.appBarLayout);
         abl.setVisibility(View.GONE);
-
-        recyclerView = view.findViewById(R.id.posts_recyclerView);
-        recyclerView.setVisibility(View.GONE);
 
         userImage = view.findViewById(R.id.user_image);
         userImage.setOnClickListener(new View.OnClickListener() {
@@ -219,7 +231,164 @@ public class ProfileFragment extends Fragment {
             public void onBoomDidShow() {
             }
         });
+
         return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        firebaseFirestore = FirebaseFirestore.getInstance();
+        firebaseFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @SuppressLint("RestrictedApi")
+            @Override
+            public void onComplete(Task<DocumentSnapshot> task) {
+
+                if (task.isSuccessful()) {
+
+                    if (task.getResult().exists()) {
+
+                        staggeredRecyclerViewAdapter = new StaggeredRecyclerViewAdapter(mImageUrls);
+                        staggeredGridLayoutManager = new StaggeredGridLayoutManager(NUM_COLUMNS, LinearLayoutManager.VERTICAL);
+                        recyclerView.setLayoutManager(staggeredGridLayoutManager);
+                        recyclerView.setAdapter(staggeredRecyclerViewAdapter);
+                        getPosts();
+
+                        abl.setVisibility(View.VISIBLE);
+                        spinner.setVisibility(View.GONE);
+
+                        website = task.getResult().getString("user_website");
+                        fb_username = task.getResult().getString("facebook_username");
+                        tweet_username = task.getResult().getString("twitter_username");
+                        tweet_userID = task.getResult().getString("twitter_userID");
+                        insta_username = task.getResult().getString("instagram_username");
+
+                        name = task.getResult().getString("user_name");
+                        if (name != null && !name.trim().isEmpty()) {
+                            displayName.setVisibility(View.VISIBLE);
+                            displayName.setText(name);
+                        } else {
+                            displayName.setVisibility(View.GONE);
+                        }
+
+                        username = task.getResult().getString("unique_name");
+                        if (username != null && !username.trim().isEmpty()) {
+                            ctl.setTitle(username);
+                        } else {
+                            ctl.setTitle(" ");
+                        }
+
+                        bio = task.getResult().getString("user_bio");
+                        if (bio != null && !bio.trim().isEmpty()) {
+                            userBio.setVisibility(View.VISIBLE);
+                            userBio.setText(bio);
+                        } else {
+                            userBio.setVisibility(View.GONE);
+                        }
+
+                        image = task.getResult().getString("user_image");
+                        Picasso
+                                .get()
+                                .load(image)
+                                .placeholder(R.mipmap.placeholder)
+                                .into(userImage, new Callback() {
+                                    @Override
+                                    public void onSuccess() {
+
+                                        Bitmap bitmap = ((BitmapDrawable) userImage.getDrawable()).getBitmap();
+                                        Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
+                                            @Override
+                                            public void onGenerated(@Nullable Palette palette) {
+
+                                                if (palette != null) {
+                                                    Palette.Swatch colorVibrant = palette.getVibrantSwatch();
+                                                    Palette.Swatch colorDominant = palette.getDominantSwatch();
+                                                    Palette.Swatch colorMuted = palette.getMutedSwatch();
+
+                                                    if (colorVibrant != null) {
+
+                                                        ctl.setContentScrimColor(colorVibrant.getRgb());
+                                                        editBtn.setCardBackgroundColor(colorVibrant.getRgb());
+                                                        btnText.setTextColor(colorVibrant.getTitleTextColor());
+                                                        ctl.setCollapsedTitleTextColor(colorVibrant.getTitleTextColor());
+                                                    } else if (colorDominant != null) {
+
+                                                        ctl.setContentScrimColor(colorDominant.getRgb());
+                                                        editBtn.setCardBackgroundColor(colorDominant.getRgb());
+                                                        btnText.setTextColor(colorDominant.getTitleTextColor());
+                                                        ctl.setCollapsedTitleTextColor(colorDominant.getTitleTextColor());
+                                                    } else if (colorMuted != null) {
+
+                                                        ctl.setContentScrimColor(colorMuted.getRgb());
+                                                        editBtn.setCardBackgroundColor(colorMuted.getRgb());
+                                                        btnText.setTextColor(colorMuted.getTitleTextColor());
+                                                        ctl.setCollapsedTitleTextColor(colorMuted.getTitleTextColor());
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+
+                                    @Override
+                                    public void onError(Exception e) {
+                                        userImage.setImageResource(R.mipmap.placeholder);
+                                    }
+                                });
+                        Picasso
+                                .get()
+                                .load(image)
+                                .placeholder(R.mipmap.backpic)
+                                .into(backPic);
+                    } else {
+                        abl.setVisibility(View.VISIBLE);
+                        recyclerView.setVisibility(View.VISIBLE);
+                        spinner.setVisibility(View.GONE);
+                        Toast
+                                .makeText(getActivity(), "No data available to retrieve", Toast.LENGTH_SHORT)
+                                .show();
+                    }
+                } else {
+                    abl.setVisibility(View.VISIBLE);
+                    recyclerView.setVisibility(View.VISIBLE);
+                    spinner.setVisibility(View.GONE);
+                    String e = Objects.requireNonNull(task.getException()).getMessage();
+                    Toast
+                            .makeText(getActivity(), "Database Error:" + e, Toast.LENGTH_SHORT)
+                            .show();
+                }
+            }
+        });
+    }
+
+    private void getPosts() {
+
+        firebaseFirestore.collection("Posts").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+
+                if (e != null) {
+                    Log.e(TAG, "onEvent: ", e);
+                } else {
+                    mImageUrls.clear();
+                    for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
+
+                        if (doc.getType() == DocumentChange.Type.ADDED) {
+                            Posts posts = doc.getDocument().toObject(Posts.class);
+
+                            if (posts.getUser_id().equals(user_id)) {
+                                mImageUrls.add(posts);
+                                recyclerView.setVisibility(View.VISIBLE);
+                            } else {
+                                noPosts.setVisibility(View.VISIBLE);
+                            }
+                        }
+                        Collections.reverse(mImageUrls);
+                        staggeredRecyclerViewAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        });
     }
 
     private void showProfileImage() {
@@ -231,12 +400,7 @@ public class ProfileFragment extends Fragment {
         saveImageDialog.show();
 
         saveImage = saveImageDialog.findViewById(R.id.save_image);
-        Picasso
-                .get()
-                .load(image)
-                .networkPolicy(NetworkPolicy.OFFLINE)
-                .placeholder(R.mipmap.placeholder)
-                .into(saveImage);
+        Picasso.get().load(image).networkPolicy(NetworkPolicy.OFFLINE).placeholder(R.mipmap.placeholder).into(saveImage);
 
         likeImage = saveImageDialog.findViewById(R.id.like);
         likeImage.setOnClickListener(new View.OnClickListener() {
@@ -402,181 +566,6 @@ public class ProfileFragment extends Fragment {
         } else {
             Toast.makeText(getActivity(), name + " does not have a Twitter :(", Toast.LENGTH_SHORT).show();
         }
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        firebaseFirestore = FirebaseFirestore.getInstance();
-        firebaseFirestore
-                .collection("Users")
-                .document(user_id)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @SuppressLint("RestrictedApi")
-                    @Override
-                    public void onComplete(Task<DocumentSnapshot> task) {
-
-                        if (task.isSuccessful()) {
-
-                            if (task.getResult().exists()) {
-
-                                abl.setVisibility(View.VISIBLE);
-                                recyclerView.setVisibility(View.VISIBLE);
-                                spinner.setVisibility(View.GONE);
-
-                                website = task.getResult().getString("user_website");
-                                fb_username = task.getResult().getString("facebook_username");
-                                tweet_username = task.getResult().getString("twitter_username");
-                                tweet_userID = task.getResult().getString("twitter_userID");
-                                insta_username = task.getResult().getString("instagram_username");
-
-                                name = task.getResult().getString("user_name");
-                                if (name != null && !name.trim().isEmpty()) {
-                                    displayName.setVisibility(View.VISIBLE);
-                                    displayName.setText(name);
-                                } else {
-                                    displayName.setVisibility(View.GONE);
-                                }
-
-                                username = task.getResult().getString("unique_name");
-                                if (username != null && !username.trim().isEmpty()) {
-                                    ctl.setTitle(username);
-                                } else {
-                                    ctl.setTitle(" ");
-                                }
-
-                                bio = task.getResult().getString("user_bio");
-                                if (bio != null && !bio.trim().isEmpty()) {
-                                    userBio.setVisibility(View.VISIBLE);
-                                    userBio.setText(bio);
-                                } else {
-                                    userBio.setVisibility(View.GONE);
-                                }
-
-                                image = task.getResult().getString("user_image");
-                                Picasso
-                                        .get()
-                                        .load(image)
-                                        .placeholder(R.mipmap.placeholder)
-                                        .into(userImage, new Callback() {
-                                            @Override
-                                            public void onSuccess() {
-
-                                                Bitmap bitmap = ((BitmapDrawable) userImage.getDrawable()).getBitmap();
-                                                Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
-                                                    @Override
-                                                    public void onGenerated(@Nullable Palette palette) {
-
-                                                        if (palette != null) {
-                                                            Palette.Swatch colorVibrant = palette.getVibrantSwatch();
-                                                            Palette.Swatch colorDominant = palette.getDominantSwatch();
-                                                            Palette.Swatch colorMuted = palette.getMutedSwatch();
-
-                                                            if (colorVibrant != null) {
-
-                                                                ctl.setContentScrimColor(colorVibrant.getRgb());
-                                                                editBtn.setCardBackgroundColor(colorVibrant.getRgb());
-                                                                btnText.setTextColor(colorVibrant.getTitleTextColor());
-                                                                ctl.setCollapsedTitleTextColor(colorVibrant.getTitleTextColor());
-                                                            } else if (colorDominant != null) {
-
-                                                                ctl.setContentScrimColor(colorDominant.getRgb());
-                                                                editBtn.setCardBackgroundColor(colorDominant.getRgb());
-                                                                btnText.setTextColor(colorDominant.getTitleTextColor());
-                                                                ctl.setCollapsedTitleTextColor(colorDominant.getTitleTextColor());
-                                                            } else if (colorMuted != null) {
-
-                                                                ctl.setContentScrimColor(colorMuted.getRgb());
-                                                                editBtn.setCardBackgroundColor(colorMuted.getRgb());
-                                                                btnText.setTextColor(colorMuted.getTitleTextColor());
-                                                                ctl.setCollapsedTitleTextColor(colorMuted.getTitleTextColor());
-                                                            }
-                                                        }
-                                                    }
-                                                });
-                                            }
-
-                                            @Override
-                                            public void onError(Exception e) {
-                                                userImage.setImageResource(R.mipmap.placeholder);
-                                            }
-                                        });
-                                Picasso
-                                        .get()
-                                        .load(image)
-                                        .placeholder(R.mipmap.placeholder)
-                                        .error(R.mipmap.placeholder)
-                                        .into(backPic);
-                            } else {
-                                abl.setVisibility(View.VISIBLE);
-                                recyclerView.setVisibility(View.VISIBLE);
-                                spinner.setVisibility(View.GONE);
-                                Toast
-                                        .makeText(getActivity(), "No data available to retrieve", Toast.LENGTH_SHORT)
-                                        .show();
-                            }
-                        } else {
-                            abl.setVisibility(View.VISIBLE);
-                            recyclerView.setVisibility(View.VISIBLE);
-                            spinner.setVisibility(View.GONE);
-                            String e = Objects.requireNonNull(task.getException()).getMessage();
-                            Toast
-                                    .makeText(getActivity(), "Database Error:" + e, Toast.LENGTH_SHORT)
-                                    .show();
-                        }
-                    }
-                });
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        imageBitmaps();
-    }
-
-    private void imageBitmaps() {
-
-        mImageUrls.add("https://images.pexels.com/photos/313032/pexels-photo-313032.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1677275/pexels-photo-1677275.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1660966/pexels-photo-1660966.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/672630/pexels-photo-672630.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1649735/pexels-photo-1649735.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1661674/pexels-photo-1661674.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1649804/pexels-photo-1649804.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/965157/pexels-photo-965157.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1679011/pexels-photo-1679011.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1122462/pexels-photo-1122462.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1656770/pexels-photo-1656770.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/103651/pexels-photo-103651.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/928475/pexels-photo-928475.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/872795/pexels-photo-872795.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1649091/pexels-photo-1649091.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1262302/pexels-photo-1262302.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1282293/pexels-photo-1282293.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/313032/pexels-photo-313032.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1677275/pexels-photo-1677275.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1660966/pexels-photo-1660966.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/672630/pexels-photo-672630.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1649735/pexels-photo-1649735.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1661674/pexels-photo-1661674.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1649804/pexels-photo-1649804.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/965157/pexels-photo-965157.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1679011/pexels-photo-1679011.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1122462/pexels-photo-1122462.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1656770/pexels-photo-1656770.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/103651/pexels-photo-103651.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/928475/pexels-photo-928475.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/872795/pexels-photo-872795.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1649091/pexels-photo-1649091.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1262302/pexels-photo-1262302.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1282293/pexels-photo-1282293.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-
-        StaggeredRecyclerViewAdapter staggeredRecyclerViewAdapter = new StaggeredRecyclerViewAdapter(getActivity(), mImageUrls);
-        StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(NUM_COLUMNS, LinearLayoutManager.VERTICAL);
-        recyclerView.setLayoutManager(staggeredGridLayoutManager);
-        recyclerView.setAdapter(staggeredRecyclerViewAdapter);
     }
 
     @Override

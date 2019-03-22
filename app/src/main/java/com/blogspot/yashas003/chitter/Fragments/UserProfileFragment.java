@@ -31,6 +31,7 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.text.format.Time;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -38,11 +39,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.blogspot.yashas003.chitter.Adapters.StaggeredRecyclerViewAdapter;
 import com.blogspot.yashas003.chitter.BuildConfig;
+import com.blogspot.yashas003.chitter.Model.Posts;
 import com.blogspot.yashas003.chitter.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -53,8 +56,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QuerySnapshot;
 import com.nightonke.boommenu.BoomButtons.BoomButton;
 import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
 import com.nightonke.boommenu.BoomButtons.SimpleCircleButton;
@@ -65,18 +72,20 @@ import com.nightonke.boommenu.Piece.PiecePlaceEnum;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
-import com.wang.avi.AVLoadingIndicatorView;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+
+import static android.support.constraint.Constraints.TAG;
 
 public class UserProfileFragment extends Fragment {
     static final int NUM_COLUMNS = 2;
@@ -84,9 +93,11 @@ public class UserProfileFragment extends Fragment {
     Menu menu;
     MenuItem menuItem;
 
-    AVLoadingIndicatorView progressBar;
+    StaggeredRecyclerViewAdapter staggeredRecyclerViewAdapter;
+    StaggeredGridLayoutManager staggeredGridLayoutManager;
     ConstraintLayout downloadProfileImage;
     ConstraintLayout shareProfileImage;
+    ProgressBar progressBar;
     ConstraintLayout likeProfileImage;
     CollapsingToolbarLayout collapseBar;
     RecyclerView postsRecyclerView;
@@ -94,6 +105,7 @@ public class UserProfileFragment extends Fragment {
     TextView displayProfileName;
     TextView userProfileBio;
     TextView followBtnText;
+    TextView noPosts;
     AppBarLayout appBarLayout;
     BoomMenuButton boomMenu;
     ImageView backgroundPic;
@@ -112,7 +124,7 @@ public class UserProfileFragment extends Fragment {
     String image;
     String name;
     String bio;
-    ArrayList<String> mImageUrls = new ArrayList<>();
+    ArrayList<Posts> mImageUrls = new ArrayList<>();
 
     FirebaseFirestore mFirestore;
     FirebaseUser firebaseUser;
@@ -142,15 +154,18 @@ public class UserProfileFragment extends Fragment {
         time.setToNow();
 
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        mFirestore = FirebaseFirestore.getInstance();
 
         collapseBar = view.findViewById(R.id.collapsingToolbar);
         collapseBar.setExpandedTitleColor(getResources().getColor(android.R.color.transparent));
         collapseBar.setCollapsedTitleTextAppearance(R.style.CollapsedAppBar);
 
+        noPosts = view.findViewById(R.id.no_posts);
         backgroundPic = view.findViewById(R.id.back_picture);
         displayProfileName = view.findViewById(R.id.user_name);
         userProfileBio = view.findViewById(R.id.unique_name);
         followBtnText = view.findViewById(R.id.follow_btn_text);
+        postsRecyclerView = view.findViewById(R.id.posts_recyclerView);
 
         isFollowing(user_id, followBtnText);
 
@@ -167,9 +182,6 @@ public class UserProfileFragment extends Fragment {
 
         appBarLayout = view.findViewById(R.id.appBarLayout);
         appBarLayout.setVisibility(View.GONE);
-
-        postsRecyclerView = view.findViewById(R.id.posts_recyclerView);
-        postsRecyclerView.setVisibility(View.GONE);
 
         userProfileImage = view.findViewById(R.id.user_image);
         userProfileImage.setOnClickListener(new View.OnClickListener() {
@@ -233,6 +245,162 @@ public class UserProfileFragment extends Fragment {
         });
 
         return view;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+
+        mFirestore = FirebaseFirestore.getInstance();
+        mFirestore
+                .collection("Users")
+                .document(user_id)
+                .get()
+                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+                    @SuppressLint("RestrictedApi")
+                    @Override
+                    public void onComplete(Task<DocumentSnapshot> task) {
+
+                        if (task.isSuccessful()) {
+
+                            if (task.getResult().exists()) {
+
+                                staggeredRecyclerViewAdapter = new StaggeredRecyclerViewAdapter(mImageUrls);
+                                staggeredGridLayoutManager = new StaggeredGridLayoutManager(NUM_COLUMNS, LinearLayoutManager.VERTICAL);
+                                postsRecyclerView.setLayoutManager(staggeredGridLayoutManager);
+                                postsRecyclerView.setAdapter(staggeredRecyclerViewAdapter);
+                                getPosts();
+
+                                appBarLayout.setVisibility(View.VISIBLE);
+                                progressBar.setVisibility(View.GONE);
+
+                                website = task.getResult().getString("user_website");
+                                faceBook_username = task.getResult().getString("facebook_username");
+                                tweeter_username = task.getResult().getString("twitter_username");
+                                tweeter_userID = task.getResult().getString("twitter_userID");
+                                instagram_username = task.getResult().getString("instagram_username");
+
+                                name = task.getResult().getString("user_name");
+                                if (name != null && !name.trim().isEmpty()) {
+                                    displayProfileName.setVisibility(View.VISIBLE);
+                                    displayProfileName.setText(name);
+                                } else {
+                                    displayProfileName.setVisibility(View.GONE);
+                                }
+
+                                username = task.getResult().getString("unique_name");
+                                if (username != null && !username.trim().isEmpty()) {
+                                    collapseBar.setTitle(username);
+                                } else {
+                                    collapseBar.setTitle(" ");
+                                }
+
+                                bio = task.getResult().getString("user_bio");
+                                if (bio != null && !bio.trim().isEmpty()) {
+                                    userProfileBio.setVisibility(View.VISIBLE);
+                                    userProfileBio.setText(bio);
+                                } else {
+                                    userProfileBio.setVisibility(View.GONE);
+                                }
+
+                                image = task.getResult().getString("user_image");
+                                Picasso
+                                        .get()
+                                        .load(image)
+                                        .placeholder(R.mipmap.placeholder)
+                                        .into(userProfileImage, new Callback() {
+                                            @Override
+                                            public void onSuccess() {
+
+                                                Bitmap bitmap = ((BitmapDrawable) userProfileImage.getDrawable()).getBitmap();
+                                                Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
+                                                    @Override
+                                                    public void onGenerated(@Nullable Palette palette) {
+
+                                                        if (palette != null) {
+                                                            Palette.Swatch colorVibrant = palette.getVibrantSwatch();
+                                                            Palette.Swatch colorDominant = palette.getDominantSwatch();
+                                                            Palette.Swatch colorMuted = palette.getMutedSwatch();
+
+                                                            if (colorVibrant != null) {
+
+                                                                collapseBar.setContentScrimColor(colorVibrant.getRgb());
+                                                                followBtn.setCardBackgroundColor(colorVibrant.getRgb());
+                                                                followBtnText.setTextColor(colorVibrant.getTitleTextColor());
+                                                                collapseBar.setCollapsedTitleTextColor(colorVibrant.getTitleTextColor());
+                                                            } else if (colorDominant != null) {
+
+                                                                collapseBar.setContentScrimColor(colorDominant.getRgb());
+                                                                followBtn.setCardBackgroundColor(colorDominant.getRgb());
+                                                                followBtnText.setTextColor(colorDominant.getTitleTextColor());
+                                                                collapseBar.setCollapsedTitleTextColor(colorDominant.getTitleTextColor());
+                                                            } else if (colorMuted != null) {
+
+                                                                collapseBar.setContentScrimColor(colorMuted.getRgb());
+                                                                followBtn.setCardBackgroundColor(colorMuted.getRgb());
+                                                                followBtnText.setTextColor(colorMuted.getTitleTextColor());
+                                                                collapseBar.setCollapsedTitleTextColor(colorMuted.getTitleTextColor());
+                                                            }
+                                                        }
+                                                    }
+                                                });
+                                            }
+
+                                            @Override
+                                            public void onError(Exception e) {
+                                                userProfileImage.setImageResource(R.mipmap.placeholder);
+                                            }
+                                        });
+                                Picasso
+                                        .get()
+                                        .load(image)
+                                        .placeholder(R.mipmap.backpic)
+                                        .into(backgroundPic);
+                            } else {
+                                appBarLayout.setVisibility(View.VISIBLE);
+                                postsRecyclerView.setVisibility(View.VISIBLE);
+                                progressBar.setVisibility(View.GONE);
+                                Toast.makeText(getActivity(), "No data available to retrieve", Toast.LENGTH_SHORT).show();
+                            }
+                        } else {
+                            appBarLayout.setVisibility(View.VISIBLE);
+                            postsRecyclerView.setVisibility(View.VISIBLE);
+                            progressBar.setVisibility(View.GONE);
+                            String e = Objects.requireNonNull(task.getException()).getMessage();
+                            Toast.makeText(getActivity(), "Database Error:" + e, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+    }
+
+    private void getPosts() {
+
+        mFirestore.collection("Posts").addSnapshotListener(new EventListener<QuerySnapshot>() {
+            @Override
+            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+
+                if (e != null) {
+                    Log.e(TAG, "onEvent: ", e);
+                } else {
+                    mImageUrls.clear();
+                    for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
+
+                        if (doc.getType() == DocumentChange.Type.ADDED) {
+                            Posts posts = doc.getDocument().toObject(Posts.class);
+
+                            if (posts.getUser_id().equals(user_id)) {
+                                mImageUrls.add(posts);
+                                postsRecyclerView.setVisibility(View.VISIBLE);
+                            } else {
+                                noPosts.setVisibility(View.VISIBLE);
+                            }
+                        }
+                        Collections.reverse(mImageUrls);
+                        staggeredRecyclerViewAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+        });
     }
 
     private void followUser() {
@@ -443,181 +611,6 @@ public class UserProfileFragment extends Fragment {
             e.printStackTrace();
         }
         MediaScannerConnection.scanFile(getContext(), new String[]{String.valueOf(file)}, null, null);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-
-        mFirestore = FirebaseFirestore.getInstance();
-        mFirestore
-                .collection("Users")
-                .document(user_id)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @SuppressLint("RestrictedApi")
-                    @Override
-                    public void onComplete(Task<DocumentSnapshot> task) {
-
-                        if (task.isSuccessful()) {
-
-                            if (task.getResult().exists()) {
-
-                                appBarLayout.setVisibility(View.VISIBLE);
-                                postsRecyclerView.setVisibility(View.VISIBLE);
-                                progressBar.setVisibility(View.GONE);
-
-                                website = task.getResult().getString("user_website");
-                                faceBook_username = task.getResult().getString("facebook_username");
-                                tweeter_username = task.getResult().getString("twitter_username");
-                                tweeter_userID = task.getResult().getString("twitter_userID");
-                                instagram_username = task.getResult().getString("instagram_username");
-
-                                name = task.getResult().getString("user_name");
-                                if (name != null && !name.trim().isEmpty()) {
-                                    displayProfileName.setVisibility(View.VISIBLE);
-                                    displayProfileName.setText(name);
-                                } else {
-                                    displayProfileName.setVisibility(View.GONE);
-                                }
-
-                                username = task.getResult().getString("unique_name");
-                                if (username != null && !username.trim().isEmpty()) {
-                                    collapseBar.setTitle(username);
-                                } else {
-                                    collapseBar.setTitle(" ");
-                                }
-
-                                bio = task.getResult().getString("user_bio");
-                                if (bio != null && !bio.trim().isEmpty()) {
-                                    userProfileBio.setVisibility(View.VISIBLE);
-                                    userProfileBio.setText(bio);
-                                } else {
-                                    userProfileBio.setVisibility(View.GONE);
-                                }
-
-                                image = task.getResult().getString("user_image");
-                                Picasso
-                                        .get()
-                                        .load(image)
-                                        .placeholder(R.mipmap.placeholder)
-                                        .into(userProfileImage, new Callback() {
-                                            @Override
-                                            public void onSuccess() {
-
-                                                Bitmap bitmap = ((BitmapDrawable) userProfileImage.getDrawable()).getBitmap();
-                                                Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
-                                                    @Override
-                                                    public void onGenerated(@Nullable Palette palette) {
-
-                                                        if (palette != null) {
-                                                            Palette.Swatch colorVibrant = palette.getVibrantSwatch();
-                                                            Palette.Swatch colorDominant = palette.getDominantSwatch();
-                                                            Palette.Swatch colorMuted = palette.getMutedSwatch();
-
-                                                            if (colorVibrant != null) {
-
-                                                                collapseBar.setContentScrimColor(colorVibrant.getRgb());
-                                                                followBtn.setCardBackgroundColor(colorVibrant.getRgb());
-                                                                followBtnText.setTextColor(colorVibrant.getTitleTextColor());
-                                                                collapseBar.setCollapsedTitleTextColor(colorVibrant.getTitleTextColor());
-                                                            } else if (colorDominant != null) {
-
-                                                                collapseBar.setContentScrimColor(colorDominant.getRgb());
-                                                                followBtn.setCardBackgroundColor(colorDominant.getRgb());
-                                                                followBtnText.setTextColor(colorDominant.getTitleTextColor());
-                                                                collapseBar.setCollapsedTitleTextColor(colorDominant.getTitleTextColor());
-                                                            } else if (colorMuted != null) {
-
-                                                                collapseBar.setContentScrimColor(colorMuted.getRgb());
-                                                                followBtn.setCardBackgroundColor(colorMuted.getRgb());
-                                                                followBtnText.setTextColor(colorMuted.getTitleTextColor());
-                                                                collapseBar.setCollapsedTitleTextColor(colorMuted.getTitleTextColor());
-                                                            }
-                                                        }
-                                                    }
-                                                });
-                                            }
-
-                                            @Override
-                                            public void onError(Exception e) {
-                                                userProfileImage.setImageResource(R.mipmap.placeholder);
-                                            }
-                                        });
-                                Picasso
-                                        .get()
-                                        .load(image)
-                                        .placeholder(R.mipmap.placeholder)
-                                        .error(R.mipmap.placeholder)
-                                        .into(backgroundPic);
-                            } else {
-                                appBarLayout.setVisibility(View.VISIBLE);
-                                postsRecyclerView.setVisibility(View.VISIBLE);
-                                progressBar.setVisibility(View.GONE);
-                                Toast
-                                        .makeText(getActivity(), "No data available to retrieve", Toast.LENGTH_SHORT)
-                                        .show();
-                            }
-                        } else {
-                            appBarLayout.setVisibility(View.VISIBLE);
-                            postsRecyclerView.setVisibility(View.VISIBLE);
-                            progressBar.setVisibility(View.GONE);
-                            String e = Objects.requireNonNull(task.getException()).getMessage();
-                            Toast
-                                    .makeText(getActivity(), "Database Error:" + e, Toast.LENGTH_SHORT)
-                                    .show();
-                        }
-                    }
-                });
-    }
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        imageBitmaps();
-    }
-
-    private void imageBitmaps() {
-
-        mImageUrls.add("https://images.pexels.com/photos/313032/pexels-photo-313032.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1677275/pexels-photo-1677275.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1660966/pexels-photo-1660966.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/672630/pexels-photo-672630.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1649735/pexels-photo-1649735.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1661674/pexels-photo-1661674.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1649804/pexels-photo-1649804.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/965157/pexels-photo-965157.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1679011/pexels-photo-1679011.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1122462/pexels-photo-1122462.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1656770/pexels-photo-1656770.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/103651/pexels-photo-103651.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/928475/pexels-photo-928475.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/872795/pexels-photo-872795.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1649091/pexels-photo-1649091.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1262302/pexels-photo-1262302.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1282293/pexels-photo-1282293.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/313032/pexels-photo-313032.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1677275/pexels-photo-1677275.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1660966/pexels-photo-1660966.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/672630/pexels-photo-672630.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1649735/pexels-photo-1649735.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1661674/pexels-photo-1661674.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1649804/pexels-photo-1649804.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/965157/pexels-photo-965157.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1679011/pexels-photo-1679011.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1122462/pexels-photo-1122462.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1656770/pexels-photo-1656770.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/103651/pexels-photo-103651.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/928475/pexels-photo-928475.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/872795/pexels-photo-872795.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1649091/pexels-photo-1649091.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1262302/pexels-photo-1262302.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-        mImageUrls.add("https://images.pexels.com/photos/1282293/pexels-photo-1282293.jpeg?auto=compress&cs=tinysrgb&dpr=1&w=500");
-
-        StaggeredRecyclerViewAdapter staggeredRecyclerViewAdapter = new StaggeredRecyclerViewAdapter(getActivity(), mImageUrls);
-        StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(NUM_COLUMNS, LinearLayoutManager.VERTICAL);
-        postsRecyclerView.setLayoutManager(staggeredGridLayoutManager);
-        postsRecyclerView.setAdapter(staggeredRecyclerViewAdapter);
     }
 
     private void isFollowing(final String userID, final TextView btnText) {

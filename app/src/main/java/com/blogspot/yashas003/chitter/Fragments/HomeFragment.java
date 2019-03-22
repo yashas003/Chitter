@@ -15,15 +15,23 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 
 import com.blogspot.yashas003.chitter.Adapters.PostAdapter;
 import com.blogspot.yashas003.chitter.Model.Posts;
 import com.blogspot.yashas003.chitter.R;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
@@ -36,13 +44,20 @@ public class HomeFragment extends Fragment {
     MenuItem menuItem;
     Menu menu;
 
-    Toolbar toolbar;
+    LinearLayoutManager layoutManager;
+    ProgressBar loader;
+    List<String> following_list;
     RecyclerView postListView;
-    List<Posts> post_list;
     PostAdapter postAdapter;
+    List<Posts> post_list;
+    String mUser;
+    Toolbar toolbar;
 
+    FirebaseFirestoreSettings firestoreSettings;
+    DatabaseReference mreference;
+    FirebaseFirestore mfirestore;
     FirebaseAuth mAuth;
-    FirebaseFirestore firestore;
+    Query query;
 
     @Nullable
     @Override
@@ -61,35 +76,79 @@ public class HomeFragment extends Fragment {
         toolbar.setTitleTextAppearance(getActivity(), R.style.ToolBarFont);
         activity.setSupportActionBar(toolbar);
 
+        loader = view.findViewById(R.id.home_progress);
+
+        firestoreSettings = new FirebaseFirestoreSettings.Builder().setPersistenceEnabled(true).build();
+
         mAuth = FirebaseAuth.getInstance();
+        mUser = mAuth.getCurrentUser().getUid();
+        mfirestore = FirebaseFirestore.getInstance();
 
         post_list = new ArrayList<>();
         postListView = view.findViewById(R.id.post_list_view);
         postAdapter = new PostAdapter(post_list);
 
-        postListView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        layoutManager = new LinearLayoutManager(getActivity());
+        postListView.setLayoutManager(layoutManager);
         postListView.setAdapter(postAdapter);
 
-        firestore = FirebaseFirestore.getInstance();
-        firestore.collection("Posts").addSnapshotListener(new EventListener<QuerySnapshot>() {
+        checkFollowing();
+        return view;
+    }
+
+    private void checkFollowing() {
+
+        following_list = new ArrayList<>();
+        mreference = FirebaseDatabase.getInstance().getReference("Follow").child(mUser).child("following");
+        mreference.keepSynced(true);
+        mreference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                following_list.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    following_list.add(snapshot.getKey());
+                }
+                readPosts();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
+
+    private void readPosts() {
+
+        query = mfirestore.collection("Posts").orderBy("time", Query.Direction.DESCENDING);
+        mfirestore.setFirestoreSettings(firestoreSettings);
+        query.addSnapshotListener(getActivity(), new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
 
                 if (e != null) {
                     Log.e(TAG, "onEvent: ", e);
                 } else {
+                    post_list.clear();
+
                     for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
-
                         if (doc.getType() == DocumentChange.Type.ADDED) {
-
                             Posts posts = doc.getDocument().toObject(Posts.class);
-                            post_list.add(posts);
-                            postAdapter.notifyDataSetChanged();
+
+                            if (posts.getUser_id().equals(mUser)) {
+                                post_list.add(posts);
+                            }
+                            for (String id : following_list) {
+                                if (posts.getUser_id().equals(id)) {
+                                    post_list.add(posts);
+                                    postListView.setVisibility(View.VISIBLE);
+                                    loader.setVisibility(View.GONE);
+                                }
+                                postAdapter.notifyDataSetChanged();
+                            }
                         }
                     }
                 }
             }
         });
-        return view;
     }
 }

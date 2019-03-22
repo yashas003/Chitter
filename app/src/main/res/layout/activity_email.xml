@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".EmailActivity">
+    tools:context=".Activities.EmailActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/edit_email_toolbar"

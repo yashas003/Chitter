@@ -1,4 +1,4 @@
-package com.blogspot.yashas003.chitter;
+package com.blogspot.yashas003.chitter.Activities;
 
 import android.content.Intent;
 import android.os.Build;
@@ -11,6 +11,7 @@ import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.blogspot.yashas003.chitter.R;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -52,7 +53,7 @@ public class SplashActivity extends AppCompatActivity {
                 public void run() {
                     Intent intent = new Intent(SplashActivity.this, StartPageActivity.class);
                     startActivity(intent);
-
+                    finish();
                 }
             }, 2000);
         }

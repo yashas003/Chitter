@@ -29,7 +29,7 @@
             android:foreground="@drawable/ripple_effect">
 
             <ImageView
-                android:id="@+id/imageView2"
+                android:id="@+id/grid_post_image"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:scaleType="centerCrop"

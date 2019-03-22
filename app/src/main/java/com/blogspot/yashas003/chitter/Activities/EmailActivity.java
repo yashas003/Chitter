@@ -1,4 +1,4 @@
-package com.blogspot.yashas003.chitter;
+package com.blogspot.yashas003.chitter.Activities;
 
 import android.app.Dialog;
 import android.graphics.Color;
@@ -15,6 +15,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.blogspot.yashas003.chitter.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;

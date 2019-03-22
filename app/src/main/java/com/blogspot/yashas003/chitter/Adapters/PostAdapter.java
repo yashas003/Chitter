@@ -1,7 +1,6 @@
 package com.blogspot.yashas003.chitter.Adapters;
 
 import android.graphics.Color;
-import android.graphics.drawable.GradientDrawable;
 import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.text.format.DateFormat;
@@ -18,6 +17,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.sql.Date;
@@ -48,17 +48,25 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         final Posts posts = post_list.get(i);
 
         String description = posts.getDesc();
-        if (description != null && !description.trim().isEmpty()) {
+        if (description != null && !description.isEmpty()) {
             viewHolder.description.setText(description);
         } else {
             viewHolder.description.setText("No comments!!");
             viewHolder.description.setTextColor(Color.GRAY);
         }
 
-        GradientDrawable gradientDrawable = new GradientDrawable();
-        gradientDrawable.setShape(GradientDrawable.RECTANGLE);
-        gradientDrawable.setColor(Color.WHITE);
-        Picasso.get().load(posts.getImage_url()).placeholder(gradientDrawable).into(viewHolder.postImage);
+        Picasso.get().load(posts.getThumb()).placeholder(R.mipmap.postback)
+                .into(viewHolder.postImage, new Callback() {
+                    @Override
+                    public void onSuccess() {
+                        Picasso.get().load(posts.getImage_url()).placeholder(viewHolder.postImage.getDrawable())
+                                .into(viewHolder.postImage);
+                    }
+
+                    @Override
+                    public void onError(Exception e) {
+                    }
+                });
 
         firestore.collection("Users").document(posts.getUser_id()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
             @Override
@@ -77,7 +85,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
         try {
             long millisec = posts.getTime().getTime();
-            String date = DateFormat.format("hh:mm - dd.MM.yyyy", new Date(millisec)).toString();
+            String date = DateFormat.format("hh:mm a - dd.MM.yyyy", new Date(millisec)).toString();
             viewHolder.postDate.setText(date);
         } catch (Exception e) {
             Log.e(TAG, "onBindViewHolder: ", e);

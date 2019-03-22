@@ -4,11 +4,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.wang.avi.AVLoadingIndicatorView
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        app:indicatorColor="@color/colorWhite"
-        app:indicatorName="BallPulseIndicator"
+    <ProgressBar
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:indeterminateTint="@color/colorWhite"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

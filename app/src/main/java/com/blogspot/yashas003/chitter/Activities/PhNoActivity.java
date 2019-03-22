@@ -1,4 +1,4 @@
-package com.blogspot.yashas003.chitter;
+package com.blogspot.yashas003.chitter.Activities;
 
 import android.content.Intent;
 import android.graphics.Color;
@@ -11,6 +11,9 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+
+import com.blogspot.yashas003.chitter.R;
+import com.blogspot.yashas003.chitter.Utils.CountryData;
 
 public class PhNoActivity extends AppCompatActivity {
     Toolbar toolbar;

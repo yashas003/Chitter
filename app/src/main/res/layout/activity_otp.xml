@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".OtpActivity">
+    tools:context=".Activities.OtpActivity">
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/otpToolbar"
@@ -18,11 +18,11 @@
         app:title="OTP verification"
         app:titleTextColor="@color/colorWhite" />
 
-    <com.wang.avi.AVLoadingIndicatorView
+    <ProgressBar
         android:id="@+id/loader"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        app:indicatorColor="@color/colorPrimary"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:indeterminateTint="@color/colorPrimary"
         app:layout_constraintBottom_toTopOf="@+id/constraintLayout3"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

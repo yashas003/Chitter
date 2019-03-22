@@ -23,6 +23,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -41,6 +42,7 @@ public class SearchFragment extends Fragment {
     UserAdapter userAdapter;
 
     FirebaseFirestore firestore = FirebaseFirestore.getInstance();
+    FirebaseFirestoreSettings firestoreSettings;
     CollectionReference reference = firestore.collection("Users");
     Query query;
 
@@ -58,11 +60,14 @@ public class SearchFragment extends Fragment {
 
         searchBar = view.findViewById(R.id.search_bar);
 
+        firestoreSettings = new FirebaseFirestoreSettings.Builder().setPersistenceEnabled(true).build();
+
         users_list_view = view.findViewById(R.id.recycler_view);
         users_list_view.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         // Show all users when fragment created
         query = firestore.collection("Users");
+        firestore.setFirestoreSettings(firestoreSettings);
         showAdapter(query);
 
         searchBar.addTextChangedListener(new TextWatcher() {
@@ -77,6 +82,7 @@ public class SearchFragment extends Fragment {
 
                     // Show all users when search bar character null
                     query = firestore.collection("Users");
+                    firestore.setFirestoreSettings(firestoreSettings);
                     showAdapter(query);
                 } else {
 
