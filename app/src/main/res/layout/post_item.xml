@@ -81,6 +81,18 @@
         app:srcCompat="@mipmap/postback"
         tools:ignore="ContentDescription" />
 
+    <com.varunest.sparkbutton.SparkButton
+        android:id="@+id/like_picture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/constraintLayout10"
+        app:layout_constraintEnd_toEndOf="@+id/post_image"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/post_image"
+        app:sparkbutton_activeImage="@drawable/ic_likes"
+        app:sparkbutton_iconSize="64dp" />
+
     <android.support.constraint.ConstraintLayout
         android:id="@+id/constraintLayout10"
         android:layout_width="0dp"
@@ -91,74 +103,71 @@
         app:layout_constraintTop_toBottomOf="@+id/post_image">
 
         <ImageView
-            android:id="@+id/imageView8"
-            android:layout_width="26dp"
+            android:id="@+id/like_post"
+            android:layout_width="0dp"
             android:layout_height="26dp"
-            android:layout_marginStart="12dp"
             android:layout_marginTop="12dp"
-            app:layout_constraintBottom_toTopOf="@+id/textView31"
-            app:layout_constraintEnd_toStartOf="@+id/imageView9"
+            app:layout_constraintBottom_toTopOf="@+id/likes_count"
+            app:layout_constraintEnd_toStartOf="@+id/comment_post"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@drawable/ic_likes_outline"
             tools:ignore="ContentDescription" />
 
         <ImageView
-            android:id="@+id/imageView9"
-            android:layout_width="26dp"
+            android:id="@+id/comment_post"
+            android:layout_width="0dp"
             android:layout_height="26dp"
-            android:layout_marginStart="18dp"
-            app:layout_constraintBottom_toBottomOf="@+id/imageView8"
-            app:layout_constraintEnd_toStartOf="@+id/imageView10"
-            app:layout_constraintStart_toEndOf="@+id/imageView8"
-            app:layout_constraintTop_toTopOf="@+id/imageView8"
+            app:layout_constraintBottom_toBottomOf="@+id/like_post"
+            app:layout_constraintEnd_toStartOf="@+id/share_post"
+            app:layout_constraintStart_toEndOf="@+id/like_post"
+            app:layout_constraintTop_toTopOf="@+id/like_post"
             app:srcCompat="@drawable/ic_comment"
             tools:ignore="ContentDescription" />
 
         <ImageView
-            android:id="@+id/imageView10"
-            android:layout_width="26dp"
+            android:id="@+id/share_post"
+            android:layout_width="0dp"
             android:layout_height="26dp"
-            android:layout_marginStart="18dp"
-            app:layout_constraintBottom_toBottomOf="@+id/imageView9"
-            app:layout_constraintStart_toEndOf="@+id/imageView9"
-            app:layout_constraintTop_toTopOf="@+id/imageView9"
-            app:srcCompat="@drawable/ic_send"
+            app:layout_constraintBottom_toBottomOf="@+id/comment_post"
+            app:layout_constraintEnd_toStartOf="@+id/save_post"
+            app:layout_constraintStart_toEndOf="@+id/comment_post"
+            app:layout_constraintTop_toTopOf="@+id/comment_post"
+            app:srcCompat="@drawable/ic_share"
             tools:ignore="ContentDescription" />
 
         <ImageView
-            android:id="@+id/imageView11"
-            android:layout_width="26dp"
-            android:layout_height="26dp"
-            android:layout_marginTop="12dp"
-            android:layout_marginEnd="8dp"
-            android:layout_marginBottom="8dp"
-            app:layout_constraintBottom_toTopOf="@+id/post_description"
+            android:id="@+id/save_post"
+            android:layout_width="0dp"
+            android:layout_height="28dp"
+            app:layout_constraintBottom_toBottomOf="@+id/share_post"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_bias="0.0"
+            app:layout_constraintStart_toEndOf="@+id/share_post"
+            app:layout_constraintTop_toTopOf="@+id/share_post"
             app:srcCompat="@drawable/ic_bookmark"
             tools:ignore="ContentDescription" />
 
         <TextView
-            android:id="@+id/textView31"
-            android:layout_width="wrap_content"
+            android:id="@+id/likes_count"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
             android:text="0 likes"
             android:textColor="@color/colorBlack"
             android:textStyle="bold"
             app:layout_constraintBottom_toTopOf="@+id/post_description"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/imageView8"
+            app:layout_constraintTop_toBottomOf="@+id/like_post"
             tools:ignore="HardcodedText" />
 
         <TextView
             android:id="@+id/post_description"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="16dp"
             android:layout_marginTop="4dp"
             android:layout_marginEnd="8dp"
             android:ellipsize="end"
@@ -166,15 +175,15 @@
             android:textColor="@color/colorGray"
             android:textSize="16sp"
             app:layout_constraintBottom_toTopOf="@+id/post_date"
-            app:layout_constraintEnd_toStartOf="@+id/imageView11"
+            app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/textView31" />
+            app:layout_constraintTop_toBottomOf="@+id/likes_count" />
 
         <TextView
             android:id="@+id/post_date"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
+            android:layout_marginStart="16dp"
             android:layout_marginBottom="16dp"
             android:textColor="@color/colorGray"
             android:textSize="12sp"

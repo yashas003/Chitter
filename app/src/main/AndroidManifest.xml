@@ -54,6 +54,7 @@
         <activity android:name=".Activities.EmailActivity" />
         <activity android:name=".Activities.SettingsActivity" />
         <activity android:name=".Activities.StartPageActivity" />
+        <activity android:name=".Activities.SavedPostsActivity" />
     </application>
 
 </manifest>

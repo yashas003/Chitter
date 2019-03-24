@@ -1,7 +1,10 @@
 package com.blogspot.yashas003.chitter.Activities;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -76,39 +79,43 @@ public class EmailActivity extends AppCompatActivity {
 
                 if (!TextUtils.isEmpty(enteredEmail)) {
 
-                    final Dialog confirmPass = new Dialog(EmailActivity.this);
-                    confirmPass.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
-                    confirmPass.requestWindowFeature(Window.FEATURE_NO_TITLE);
-                    confirmPass.setContentView(R.layout.confirm_password);
-                    confirmPass.show();
+                    if (isOnline()) {
 
-                    dialogPassword = confirmPass.findViewById(R.id.new_password);
+                        final Dialog confirmPass = new Dialog(EmailActivity.this);
+                        confirmPass.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+                        confirmPass.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                        confirmPass.setContentView(R.layout.confirm_password);
+                        confirmPass.show();
 
-                    confirmBtn = confirmPass.findViewById(R.id.confirm_button);
-                    confirmBtn.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
+                        dialogPassword = confirmPass.findViewById(R.id.new_password);
 
-                            String Password = dialogPassword.getText().toString();
+                        confirmBtn = confirmPass.findViewById(R.id.confirm_button);
+                        confirmBtn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
 
-                            if (TextUtils.isEmpty(Password)) {
-                                confirmPass.dismiss();
-                                Toast.makeText(EmailActivity.this, "Password cannot be empty :(", Toast.LENGTH_SHORT).show();
-                            } else {
-                                confirmPass.dismiss();
-                                updateNewEmail(Password);
+                                String Password = dialogPassword.getText().toString();
+
+                                if (TextUtils.isEmpty(Password)) {
+                                    confirmPass.dismiss();
+                                    Toast.makeText(EmailActivity.this, "Password cannot be empty :(", Toast.LENGTH_SHORT).show();
+                                } else {
+                                    confirmPass.dismiss();
+                                    updateNewEmail(Password);
+                                }
                             }
-                        }
-                    });
+                        });
 
-                    closeBtn = confirmPass.findViewById(R.id.close_button);
-                    closeBtn.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            confirmPass.dismiss();
-                        }
-                    });
-
+                        closeBtn = confirmPass.findViewById(R.id.close_button);
+                        closeBtn.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                confirmPass.dismiss();
+                            }
+                        });
+                    } else {
+                        Toast.makeText(EmailActivity.this, "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
 
                     Toast.makeText(EmailActivity.this, "E-mail address cannot be empty :(", Toast.LENGTH_SHORT).show();
@@ -196,5 +203,11 @@ public class EmailActivity extends AppCompatActivity {
             String email = user.getEmail();
             newEmail.setText(email);
         }
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 }

@@ -1,9 +1,12 @@
 package com.blogspot.yashas003.chitter.Activities;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -340,7 +343,11 @@ public class EditProfileActivity extends AppCompatActivity {
         switch (item.getItemId()) {
 
             case R.id.save_profile_settings:
-                saveProfileSettings();
+                if (isOnline()) {
+                    saveProfileSettings();
+                } else {
+                    Toast.makeText(this, "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
+                }
                 break;
         }
         return true;
@@ -490,5 +497,11 @@ public class EditProfileActivity extends AppCompatActivity {
                         dialog.dismiss();
                     }
                 });
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 }

@@ -1,5 +1,8 @@
 package com.blogspot.yashas003.chitter.Adapters;
 
+import android.content.Context;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -10,6 +13,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.blogspot.yashas003.chitter.Fragments.UserProfileFragment;
 import com.blogspot.yashas003.chitter.Model.Users;
@@ -62,28 +66,33 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
             @Override
             public void onClick(View v) {
 
-                if (viewHolder.followBtnText.getText().toString().equals("Follow")) {
+                if (isOnline(v)) {
 
-                    FirebaseDatabase.getInstance().getReference()
-                            .child("Follow").child(firebaseUser.getUid())
-                            .child("following").child(users.getUser_id())
-                            .setValue(true);
+                    if (viewHolder.followBtnText.getText().toString().equals("Follow")) {
 
-                    FirebaseDatabase.getInstance().getReference()
-                            .child("Follow").child(users.getUser_id())
-                            .child("followers").child(firebaseUser.getUid())
-                            .setValue(true);
+                        FirebaseDatabase.getInstance().getReference()
+                                .child("Follow").child(firebaseUser.getUid())
+                                .child("following").child(users.getUser_id())
+                                .setValue(true);
+
+                        FirebaseDatabase.getInstance().getReference()
+                                .child("Follow").child(users.getUser_id())
+                                .child("followers").child(firebaseUser.getUid())
+                                .setValue(true);
+                    } else {
+
+                        FirebaseDatabase.getInstance().getReference()
+                                .child("Follow").child(firebaseUser.getUid())
+                                .child("following").child(users.getUser_id())
+                                .removeValue();
+
+                        FirebaseDatabase.getInstance().getReference()
+                                .child("Follow").child(users.getUser_id())
+                                .child("followers").child(firebaseUser.getUid())
+                                .removeValue();
+                    }
                 } else {
-
-                    FirebaseDatabase.getInstance().getReference()
-                            .child("Follow").child(firebaseUser.getUid())
-                            .child("following").child(users.getUser_id())
-                            .removeValue();
-
-                    FirebaseDatabase.getInstance().getReference()
-                            .child("Follow").child(users.getUser_id())
-                            .child("followers").child(firebaseUser.getUid())
-                            .removeValue();
+                    Toast.makeText(v.getContext(), "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -92,17 +101,22 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
             @Override
             public void onClick(View v) {
 
-                Bundle bundle = new Bundle();
-                bundle.putString("user_id", users.getUser_id());
+                if (isOnline(v)) {
 
-                Fragment userProfile = new UserProfileFragment();
-                userProfile.setArguments(bundle);
-                ((FragmentActivity) v
-                        .getContext()).getSupportFragmentManager()
-                        .beginTransaction()
-                        .addToBackStack(null)
-                        .replace(R.id.fragment_container, userProfile)
-                        .commit();
+                    Bundle bundle = new Bundle();
+                    bundle.putString("user_id", users.getUser_id());
+
+                    Fragment userProfile = new UserProfileFragment();
+                    userProfile.setArguments(bundle);
+                    ((FragmentActivity) v
+                            .getContext()).getSupportFragmentManager()
+                            .beginTransaction()
+                            .addToBackStack(null)
+                            .replace(R.id.fragment_container, userProfile)
+                            .commit();
+                } else {
+                    Toast.makeText(v.getContext(), "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -160,5 +174,11 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+    }
+
+    private boolean isOnline(View view) {
+        ConnectivityManager cm = (ConnectivityManager) view.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 }

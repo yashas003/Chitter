@@ -77,11 +77,11 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="height" value="495" />
-                            <entry key="outputName" value="ic_home" />
+                            <entry key="height" value="432" />
+                            <entry key="outputName" value="ic_bookmark_filled" />
                             <entry key="overrideSize" value="true" />
-                            <entry key="sourceFile" value="C:\Users\Yashas\Desktop\home-icon-silhouette.svg" />
-                            <entry key="width" value="495" />
+                            <entry key="sourceFile" value="C:\Users\Yashas\Desktop\bookmark-black-shape.svg" />
+                            <entry key="width" value="432" />
                           </map>
                         </option>
                       </PersistentState>

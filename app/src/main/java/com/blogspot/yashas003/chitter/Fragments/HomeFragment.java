@@ -85,12 +85,13 @@ public class HomeFragment extends Fragment {
         mfirestore = FirebaseFirestore.getInstance();
 
         post_list = new ArrayList<>();
-        postListView = view.findViewById(R.id.post_list_view);
         postAdapter = new PostAdapter(post_list);
-
         layoutManager = new LinearLayoutManager(getActivity());
+
+        postListView = view.findViewById(R.id.post_list_view);
         postListView.setLayoutManager(layoutManager);
         postListView.setAdapter(postAdapter);
+        postListView.setHasFixedSize(true);
 
         checkFollowing();
         return view;
@@ -121,7 +122,7 @@ public class HomeFragment extends Fragment {
 
         query = mfirestore.collection("Posts").orderBy("time", Query.Direction.DESCENDING);
         mfirestore.setFirestoreSettings(firestoreSettings);
-        query.addSnapshotListener(getActivity(), new EventListener<QuerySnapshot>() {
+        query.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
 
@@ -132,10 +133,14 @@ public class HomeFragment extends Fragment {
 
                     for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
                         if (doc.getType() == DocumentChange.Type.ADDED) {
-                            Posts posts = doc.getDocument().toObject(Posts.class);
+
+                            String post_id = doc.getDocument().getId();
+                            Posts posts = doc.getDocument().toObject(Posts.class).withId(post_id);
 
                             if (posts.getUser_id().equals(mUser)) {
                                 post_list.add(posts);
+                                postListView.setVisibility(View.VISIBLE);
+                                loader.setVisibility(View.GONE);
                             }
                             for (String id : following_list) {
                                 if (posts.getUser_id().equals(id)) {
@@ -143,9 +148,9 @@ public class HomeFragment extends Fragment {
                                     postListView.setVisibility(View.VISIBLE);
                                     loader.setVisibility(View.GONE);
                                 }
-                                postAdapter.notifyDataSetChanged();
                             }
                         }
+                        postAdapter.notifyDataSetChanged();
                     }
                 }
             }

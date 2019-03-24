@@ -46,11 +46,7 @@ dependencies {
     // Image Compressor
     implementation 'id.zelory:compressor:2.1.0'
 
-    // Lottie
-    implementation 'com.airbnb.android:lottie:2.5.0'
-
-    // Swipe Refresh
-    implementation 'com.github.swabbass:wardRecycler:1.0.2.2'
+    implementation 'com.github.varunest:sparkbutton:1.0.6'
 
     // Firebase
     implementation 'com.google.firebase:firebase-auth:15.0.0'

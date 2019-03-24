@@ -106,6 +106,9 @@ public class UserProfileFragment extends Fragment {
     TextView userProfileBio;
     TextView followBtnText;
     TextView noPosts;
+    TextView users_following;
+    TextView users_followers;
+    TextView users_postCount;
     AppBarLayout appBarLayout;
     BoomMenuButton boomMenu;
     ImageView backgroundPic;
@@ -126,6 +129,7 @@ public class UserProfileFragment extends Fragment {
     String bio;
     ArrayList<Posts> mImageUrls = new ArrayList<>();
 
+    DatabaseReference mReference;
     FirebaseFirestore mFirestore;
     FirebaseUser firebaseUser;
 
@@ -146,7 +150,7 @@ public class UserProfileFragment extends Fragment {
             user_id = bundle.getString("user_id");
         }
 
-        toolbar = view.findViewById(R.id.profile_toolbar);
+        toolbar = view.findViewById(R.id.user_profile_toolbar);
         AppCompatActivity activity = (AppCompatActivity) getActivity();
         activity.setSupportActionBar(toolbar);
 
@@ -160,12 +164,17 @@ public class UserProfileFragment extends Fragment {
         collapseBar.setExpandedTitleColor(getResources().getColor(android.R.color.transparent));
         collapseBar.setCollapsedTitleTextAppearance(R.style.CollapsedAppBar);
 
+        users_following = view.findViewById(R.id.following);
+        users_followers = view.findViewById(R.id.followers);
         noPosts = view.findViewById(R.id.no_posts);
         backgroundPic = view.findViewById(R.id.back_picture);
         displayProfileName = view.findViewById(R.id.user_name);
         userProfileBio = view.findViewById(R.id.unique_name);
         followBtnText = view.findViewById(R.id.follow_btn_text);
         postsRecyclerView = view.findViewById(R.id.posts_recyclerView);
+
+        users_postCount = view.findViewById(R.id.posts);
+        users_postCount.setText("0");
 
         isFollowing(user_id, followBtnText);
 
@@ -270,6 +279,8 @@ public class UserProfileFragment extends Fragment {
                                 postsRecyclerView.setLayoutManager(staggeredGridLayoutManager);
                                 postsRecyclerView.setAdapter(staggeredRecyclerViewAdapter);
                                 getPosts();
+                                getFollowing();
+                                getFollowers();
 
                                 appBarLayout.setVisibility(View.VISIBLE);
                                 progressBar.setVisibility(View.GONE);
@@ -373,12 +384,43 @@ public class UserProfileFragment extends Fragment {
                 });
     }
 
+    private void getFollowing() {
+
+        mReference = FirebaseDatabase.getInstance().getReference().child("Follow").child(user_id).child("following");
+        mReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                users_following.setText("" + dataSnapshot.getChildrenCount());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
+
+    private void getFollowers() {
+
+        mReference = FirebaseDatabase.getInstance().getReference().child("Follow").child(user_id).child("followers");
+        mReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                users_followers.setText("" + dataSnapshot.getChildrenCount());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
+
     private void getPosts() {
 
         mFirestore.collection("Posts").addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
 
+                int postCount = 0;
                 if (e != null) {
                     Log.e(TAG, "onEvent: ", e);
                 } else {
@@ -389,6 +431,8 @@ public class UserProfileFragment extends Fragment {
                             Posts posts = doc.getDocument().toObject(Posts.class);
 
                             if (posts.getUser_id().equals(user_id)) {
+                                postCount++;
+                                users_postCount.setText("" + postCount);
                                 mImageUrls.add(posts);
                                 postsRecyclerView.setVisibility(View.VISIBLE);
                             } else {

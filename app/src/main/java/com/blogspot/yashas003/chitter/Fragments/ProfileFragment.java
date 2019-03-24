@@ -2,11 +2,9 @@ package com.blogspot.yashas003.chitter.Fragments;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
@@ -19,6 +17,7 @@ import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -44,6 +43,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.blogspot.yashas003.chitter.Activities.EditProfileActivity;
+import com.blogspot.yashas003.chitter.Activities.SavedPostsActivity;
 import com.blogspot.yashas003.chitter.Activities.SettingsActivity;
 import com.blogspot.yashas003.chitter.Adapters.StaggeredRecyclerViewAdapter;
 import com.blogspot.yashas003.chitter.BuildConfig;
@@ -52,19 +52,17 @@ import com.blogspot.yashas003.chitter.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.nightonke.boommenu.BoomButtons.BoomButton;
-import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
-import com.nightonke.boommenu.BoomButtons.SimpleCircleButton;
-import com.nightonke.boommenu.BoomMenuButton;
-import com.nightonke.boommenu.ButtonEnum;
-import com.nightonke.boommenu.OnBoomListener;
-import com.nightonke.boommenu.Piece.PiecePlaceEnum;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
@@ -91,37 +89,37 @@ public class ProfileFragment extends Fragment {
 
     StaggeredRecyclerViewAdapter staggeredRecyclerViewAdapter;
     StaggeredGridLayoutManager staggeredGridLayoutManager;
-    ProgressBar spinner;
+    FloatingActionButton savedPosts;
+    CollapsingToolbarLayout ctl;
     ConstraintLayout downloadImage;
     ConstraintLayout shareImage;
     ConstraintLayout likeImage;
-    CollapsingToolbarLayout ctl;
     RecyclerView recyclerView;
     CircleImageView userImage;
+    ImageView saveImage;
+    ImageView backPic;
     TextView displayName;
     TextView userBio;
     TextView btnText;
     TextView noPosts;
-    AppBarLayout abl;
-    BoomMenuButton bmb;
-    ImageView backPic;
-    ImageView saveImage;
+    TextView following;
+    TextView followers;
+    TextView postCount;
+    ProgressBar spinner;
     CardView editBtn;
+    AppBarLayout abl;
     Toolbar toolbar;
 
     FirebaseFirestore firebaseFirestore;
+    DatabaseReference reference;
     FirebaseAuth mAuth;
 
-    String fb_username;
-    String tweet_username;
-    String tweet_userID;
-    String insta_username;
     String username;
     String user_id;
-    String website;
     String image;
     String name;
     String bio;
+
     ArrayList<Posts> mImageUrls = new ArrayList<>();
 
     @Nullable
@@ -149,12 +147,17 @@ public class ProfileFragment extends Fragment {
         firebaseFirestore = FirebaseFirestore.getInstance();
         user_id = mAuth.getCurrentUser().getUid();
 
+        following = view.findViewById(R.id.user_following);
+        followers = view.findViewById(R.id.user_followers);
         backPic = view.findViewById(R.id.back_picture);
         displayName = view.findViewById(R.id.user_name);
         userBio = view.findViewById(R.id.unique_name);
         btnText = view.findViewById(R.id.button_text);
         recyclerView = view.findViewById(R.id.posts_recyclerView);
         noPosts = view.findViewById(R.id.no_posts);
+
+        postCount = view.findViewById(R.id.user_posts);
+        postCount.setText("0");
 
         spinner = view.findViewById(R.id.progressBar);
         spinner.setVisibility(View.VISIBLE);
@@ -170,65 +173,21 @@ public class ProfileFragment extends Fragment {
             }
         });
 
+        savedPosts = view.findViewById(R.id.saved_posts);
+        savedPosts.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent savedPost = new Intent(getActivity(), SavedPostsActivity.class);
+                startActivity(savedPost);
+            }
+        });
+
         editBtn = view.findViewById(R.id.edit_profile_btn);
         editBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent edit = new Intent(getActivity(), EditProfileActivity.class);
                 startActivity(edit);
-            }
-        });
-
-        bmb = view.findViewById(R.id.boom);
-        bmb.setButtonEnum(ButtonEnum.SimpleCircle);
-        bmb.setPiecePlaceEnum(PiecePlaceEnum.DOT_4_1);
-        bmb.setButtonPlaceEnum(ButtonPlaceEnum.SC_4_1);
-
-        bmb.addBuilder(new SimpleCircleButton.Builder().imagePadding(new Rect(35, 35, 35, 35)).normalColorRes(R.color.colorFacebook).normalImageRes(R.drawable.ic_facebook));
-        bmb.addBuilder(new SimpleCircleButton.Builder().imagePadding(new Rect(35, 35, 35, 35)).normalColorRes(R.color.colorWebsite).normalImageRes(R.drawable.ic_link));
-        bmb.addBuilder(new SimpleCircleButton.Builder().imagePadding(new Rect(35, 35, 35, 35)).normalColorRes(R.color.colorInstagram).normalImageRes(R.drawable.ic_instagram));
-        bmb.addBuilder(new SimpleCircleButton.Builder().imagePadding(new Rect(35, 35, 35, 35)).normalColorRes(R.color.colorTwitter).normalImageRes(R.drawable.ic_twitter));
-        bmb.setOnBoomListener(new OnBoomListener() {
-            @Override
-            public void onClicked(int index, BoomButton boomButton) {
-
-                switch (index) {
-                    case 0:
-                        visitFacebook();
-                        break;
-
-                    case 1:
-                        visitWebsite();
-                        break;
-
-                    case 2:
-                        visitInstagram();
-                        break;
-
-                    case 3:
-                        visitTwitter();
-                        break;
-                }
-            }
-
-            @Override
-            public void onBackgroundClick() {
-            }
-
-            @Override
-            public void onBoomWillHide() {
-            }
-
-            @Override
-            public void onBoomDidHide() {
-            }
-
-            @Override
-            public void onBoomWillShow() {
-            }
-
-            @Override
-            public void onBoomDidShow() {
             }
         });
 
@@ -254,15 +213,11 @@ public class ProfileFragment extends Fragment {
                         recyclerView.setLayoutManager(staggeredGridLayoutManager);
                         recyclerView.setAdapter(staggeredRecyclerViewAdapter);
                         getPosts();
+                        getFollowing();
+                        getFollowers();
 
                         abl.setVisibility(View.VISIBLE);
                         spinner.setVisibility(View.GONE);
-
-                        website = task.getResult().getString("user_website");
-                        fb_username = task.getResult().getString("facebook_username");
-                        tweet_username = task.getResult().getString("twitter_username");
-                        tweet_userID = task.getResult().getString("twitter_userID");
-                        insta_username = task.getResult().getString("instagram_username");
 
                         name = task.getResult().getString("user_name");
                         if (name != null && !name.trim().isEmpty()) {
@@ -288,11 +243,7 @@ public class ProfileFragment extends Fragment {
                         }
 
                         image = task.getResult().getString("user_image");
-                        Picasso
-                                .get()
-                                .load(image)
-                                .placeholder(R.mipmap.placeholder)
-                                .into(userImage, new Callback() {
+                        Picasso.get().load(image).placeholder(R.mipmap.placeholder).into(userImage, new Callback() {
                                     @Override
                                     public void onSuccess() {
 
@@ -335,28 +286,50 @@ public class ProfileFragment extends Fragment {
                                         userImage.setImageResource(R.mipmap.placeholder);
                                     }
                                 });
-                        Picasso
-                                .get()
-                                .load(image)
-                                .placeholder(R.mipmap.backpic)
-                                .into(backPic);
+                        Picasso.get().load(image).placeholder(R.mipmap.backpic).into(backPic);
                     } else {
                         abl.setVisibility(View.VISIBLE);
                         recyclerView.setVisibility(View.VISIBLE);
                         spinner.setVisibility(View.GONE);
-                        Toast
-                                .makeText(getActivity(), "No data available to retrieve", Toast.LENGTH_SHORT)
-                                .show();
+                        Toast.makeText(getActivity(), "No data available to retrieve", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     abl.setVisibility(View.VISIBLE);
                     recyclerView.setVisibility(View.VISIBLE);
                     spinner.setVisibility(View.GONE);
                     String e = Objects.requireNonNull(task.getException()).getMessage();
-                    Toast
-                            .makeText(getActivity(), "Database Error:" + e, Toast.LENGTH_SHORT)
-                            .show();
+                    Toast.makeText(getActivity(), "Database Error:" + e, Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+    }
+
+    private void getFollowing() {
+
+        reference = FirebaseDatabase.getInstance().getReference().child("Follow").child(user_id).child("following");
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                following.setText("" + dataSnapshot.getChildrenCount());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
+
+    private void getFollowers() {
+
+        reference = FirebaseDatabase.getInstance().getReference().child("Follow").child(user_id).child("followers");
+        reference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                followers.setText("" + dataSnapshot.getChildrenCount());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
             }
         });
     }
@@ -367,6 +340,7 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
 
+                int postsCount = 0;
                 if (e != null) {
                     Log.e(TAG, "onEvent: ", e);
                 } else {
@@ -377,6 +351,8 @@ public class ProfileFragment extends Fragment {
                             Posts posts = doc.getDocument().toObject(Posts.class);
 
                             if (posts.getUser_id().equals(user_id)) {
+                                postsCount++;
+                                postCount.setText("" + postsCount);
                                 mImageUrls.add(posts);
                                 recyclerView.setVisibility(View.VISIBLE);
                             } else {
@@ -482,90 +458,6 @@ public class ProfileFragment extends Fragment {
             e.printStackTrace();
         }
         MediaScannerConnection.scanFile(getContext(), new String[]{String.valueOf(file)}, null, null);
-    }
-
-    private void visitFacebook() {
-
-        if (fb_username != null && !fb_username.trim().isEmpty()) {
-
-            String facebookUrl = "https://www.facebook.com/" + fb_username;
-            try {
-                int versionCode = getActivity().getPackageManager().getPackageInfo("com.facebook.katana", 0).versionCode;
-                if (versionCode >= 3002850) {
-                    Uri uri = Uri.parse("fb://facewebmodal/f?href=" + facebookUrl);
-                    startActivity(new Intent(Intent.ACTION_VIEW, uri));
-                } else {
-                    Uri uri = Uri.parse("fb://page/" + fb_username);
-                    startActivity(new Intent(Intent.ACTION_VIEW, uri));
-                }
-            } catch (PackageManager.NameNotFoundException e) {
-                startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(facebookUrl)));
-            }
-        } else {
-            Toast.makeText(getActivity(), name + " does not have a Facebook :(", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void visitWebsite() {
-
-        if (website != null && !website.trim().isEmpty()) {
-
-            String patter = "^(http|https|ftp)://.*$";
-
-            if (website.matches(patter)) {
-
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse(website));
-                startActivity(i);
-            } else {
-
-                String url = "https://";
-                website = url + website;
-
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse(website));
-                startActivity(i);
-            }
-        } else {
-            Toast.makeText(getActivity(), name + " does not have a website :(", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void visitInstagram() {
-
-        if (insta_username != null && !insta_username.trim().isEmpty()) {
-
-            Uri uri = Uri.parse("http://instagram.com/_u/" + insta_username);
-            Intent likeIng = new Intent(Intent.ACTION_VIEW, uri);
-            likeIng.setPackage("com.instagram.android");
-
-            try {
-                startActivity(likeIng);
-            } catch (ActivityNotFoundException e) {
-                startActivity(new Intent(Intent.ACTION_VIEW,
-                        Uri.parse("http://instagram.com/" + insta_username)));
-            }
-        } else {
-            Toast.makeText(getActivity(), name + " does not have an Instagram :(", Toast.LENGTH_SHORT).show();
-        }
-    }
-
-    private void visitTwitter() {
-
-        if ((tweet_username != null && !tweet_username.trim().isEmpty()) && (tweet_userID != null && !tweet_userID.trim().isEmpty())) {
-
-            Intent intent;
-            try {
-                getActivity().getPackageManager().getPackageInfo("com.twitter.android", 0);
-                intent = new Intent(Intent.ACTION_VIEW, Uri.parse("twitter://user?user_id=" + tweet_userID));
-                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            } catch (Exception e) {
-                intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://twitter.com/" + tweet_username));
-            }
-            this.startActivity(intent);
-        } else {
-            Toast.makeText(getActivity(), name + " does not have a Twitter :(", Toast.LENGTH_SHORT).show();
-        }
     }
 
     @Override

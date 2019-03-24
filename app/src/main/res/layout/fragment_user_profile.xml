@@ -139,49 +139,46 @@
                     app:layout_constraintTop_toBottomOf="@+id/user_image">
 
                     <TextView
-                        android:id="@+id/user_posts"
+                        android:id="@+id/posts"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/galdeano"
-                        android:text="103"
                         android:textColor="@color/colorWhite"
                         android:textSize="26sp"
                         android:textStyle="bold"
                         app:layout_constraintBottom_toTopOf="@+id/textView8"
-                        app:layout_constraintEnd_toStartOf="@+id/user_followers"
+                        app:layout_constraintEnd_toStartOf="@+id/followers"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
                         tools:ignore="HardcodedText" />
 
                     <TextView
-                        android:id="@+id/user_followers"
+                        android:id="@+id/followers"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:layout_marginEnd="8dp"
                         android:fontFamily="@font/galdeano"
-                        android:text="220"
                         android:textColor="@color/colorWhite"
                         android:textSize="26sp"
                         android:textStyle="bold"
                         app:layout_constraintBottom_toTopOf="@+id/textView9"
-                        app:layout_constraintEnd_toStartOf="@+id/user_following"
-                        app:layout_constraintStart_toEndOf="@+id/user_posts"
+                        app:layout_constraintEnd_toStartOf="@+id/following"
+                        app:layout_constraintStart_toEndOf="@+id/posts"
                         app:layout_constraintTop_toTopOf="parent"
                         tools:ignore="HardcodedText" />
 
                     <TextView
-                        android:id="@+id/user_following"
+                        android:id="@+id/following"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="@font/galdeano"
-                        android:text="326"
                         android:textColor="@color/colorWhite"
                         android:textSize="26sp"
                         android:textStyle="bold"
                         app:layout_constraintBottom_toTopOf="@+id/textView10"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toEndOf="@+id/user_followers"
+                        app:layout_constraintStart_toEndOf="@+id/followers"
                         app:layout_constraintTop_toTopOf="parent"
                         tools:ignore="HardcodedText" />
 
@@ -195,9 +192,9 @@
                         android:textColor="@color/colorCream"
                         android:textSize="16sp"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="@+id/user_posts"
-                        app:layout_constraintStart_toStartOf="@+id/user_posts"
-                        app:layout_constraintTop_toBottomOf="@+id/user_posts"
+                        app:layout_constraintEnd_toEndOf="@+id/posts"
+                        app:layout_constraintStart_toStartOf="@+id/posts"
+                        app:layout_constraintTop_toBottomOf="@+id/posts"
                         tools:ignore="HardcodedText" />
 
                     <TextView
@@ -210,9 +207,9 @@
                         android:textColor="@color/colorCream"
                         android:textSize="16sp"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="@+id/user_followers"
-                        app:layout_constraintStart_toStartOf="@+id/user_followers"
-                        app:layout_constraintTop_toBottomOf="@+id/user_followers"
+                        app:layout_constraintEnd_toEndOf="@+id/followers"
+                        app:layout_constraintStart_toStartOf="@+id/followers"
+                        app:layout_constraintTop_toBottomOf="@+id/followers"
                         tools:ignore="HardcodedText" />
 
                     <TextView
@@ -225,9 +222,9 @@
                         android:textColor="@color/colorCream"
                         android:textSize="16sp"
                         app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="@+id/user_following"
-                        app:layout_constraintStart_toStartOf="@+id/user_following"
-                        app:layout_constraintTop_toBottomOf="@+id/user_following"
+                        app:layout_constraintEnd_toEndOf="@+id/following"
+                        app:layout_constraintStart_toStartOf="@+id/following"
+                        app:layout_constraintTop_toBottomOf="@+id/following"
                         tools:ignore="HardcodedText" />
 
                 </android.support.constraint.ConstraintLayout>
@@ -292,7 +289,7 @@
             </android.support.constraint.ConstraintLayout>
 
             <android.support.v7.widget.Toolbar
-                android:id="@+id/profile_toolbar"
+                android:id="@+id/user_profile_toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_gravity="top"

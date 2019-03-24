@@ -1,9 +1,12 @@
 package com.blogspot.yashas003.chitter.Activities;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -97,108 +100,109 @@ public class SetupActivity extends AppCompatActivity {
                 }
         });
 
-        firebaseFirestore
-                .collection("Users")
-                .document(user_id)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                    @Override
-                    public void onComplete(Task<DocumentSnapshot> task) {
+        firebaseFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+            @Override
+            public void onComplete(Task<DocumentSnapshot> task) {
 
-                        if (task.isSuccessful()) {
+                if (task.isSuccessful()) {
 
-                            if (task.getResult().exists()) {
+                    if (task.getResult().exists()) {
 
-                                dialog.dismiss();
-                                String displayName = task.getResult().getString("user_name");
-                                setupName.setText(displayName);
+                        dialog.dismiss();
+                        String displayName = task.getResult().getString("user_name");
+                        setupName.setText(displayName);
 
-                                String userName = task.getResult().getString("unique_name");
-                                uniqueName.setText(userName);
+                        String userName = task.getResult().getString("unique_name");
+                        uniqueName.setText(userName);
 
-                                String image = task.getResult().getString("user_image");
+                        String image = task.getResult().getString("user_image");
 
-                                if (image != null) {
+                        if (image != null) {
 
-                                    mainImageURI = Uri.parse(image);
-                                    Picasso
-                                            .get()
-                                            .load(image)
-                                            .placeholder(R.mipmap.placeholder)
-                                            .error(R.mipmap.placeholder)
-                                            .into(setupImage);
-                                }
-                            } else {
-                                dialog.dismiss();
-                                Toast.makeText(SetupActivity.this, "No data available to retrive", Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            dialog.dismiss();
-                            String e = Objects.requireNonNull(task.getException()).getMessage();
-                            Toast.makeText(SetupActivity.this, "Database Error:" + e, Toast.LENGTH_SHORT).show();
+                            mainImageURI = Uri.parse(image);
+                            Picasso
+                                    .get()
+                                    .load(image)
+                                    .placeholder(R.mipmap.placeholder)
+                                    .error(R.mipmap.placeholder)
+                                    .into(setupImage);
                         }
+                    } else {
+                        dialog.dismiss();
+                        Toast.makeText(SetupActivity.this, "No data available to retrive", Toast.LENGTH_SHORT).show();
                     }
-                });
+                } else {
+                    dialog.dismiss();
+                    String e = Objects.requireNonNull(task.getException()).getMessage();
+                    Toast.makeText(SetupActivity.this, "Database Error:" + e, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
         setupBtn = findViewById(R.id.setup_btn);
         setupBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                dialog.show();
-                final String user_name = setupName.getText().toString();
-                final String unique_name = uniqueName.getText().toString();
+                if (isOnline()) {
 
-                if (!TextUtils.isEmpty(user_name) && !TextUtils.isEmpty(unique_name) && mainImageURI != null) {
+                    dialog.show();
+                    final String user_name = setupName.getText().toString();
+                    final String unique_name = uniqueName.getText().toString();
 
-                    if (!unique_name.contains(" ")) {
+                    if (!TextUtils.isEmpty(user_name) && !TextUtils.isEmpty(unique_name) && mainImageURI != null) {
 
-                        CollectionReference userRef = firebaseFirestore.collection("Users");
-                        Query query = userRef.whereEqualTo("unique_name", unique_name);
-                        query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                            @Override
-                            public void onComplete(@NonNull Task<QuerySnapshot> task) {
+                        if (!unique_name.contains(" ")) {
 
-                                if (task.isSuccessful()) {
-                                    for (DocumentSnapshot documentSnapshot : task.getResult()) {
-                                        String user = documentSnapshot.getString("unique_name");
+                            CollectionReference userRef = firebaseFirestore.collection("Users");
+                            Query query = userRef.whereEqualTo("unique_name", unique_name);
+                            query.get().addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
+                                @Override
+                                public void onComplete(@NonNull Task<QuerySnapshot> task) {
 
-                                        if (Objects.equals(user, unique_name)) {
-                                            dialog.dismiss();
-                                            Toast.makeText(SetupActivity.this, "Username already exist!! Try different username :(", Toast.LENGTH_SHORT).show();
-                                        }
-                                    }
-                                }
-                                if (task.getResult().size() == 0) {
+                                    if (task.isSuccessful()) {
+                                        for (DocumentSnapshot documentSnapshot : task.getResult()) {
+                                            String user = documentSnapshot.getString("unique_name");
 
-                                    StorageReference image_path = storageReference.child("profile_images").child(user_id + ".jpg");
-                                    image_path.putFile(mainImageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
-
-                                        @Override
-                                        public void onComplete(Task<UploadTask.TaskSnapshot> task) {
-
-                                            if (task.isSuccessful()) {
-                                                storeFirestore(task, user_name, unique_name);
-                                            } else {
+                                            if (Objects.equals(user, unique_name)) {
                                                 dialog.dismiss();
-                                                String e = Objects.requireNonNull(task.getException()).getMessage();
-                                                Toast.makeText(SetupActivity.this, "Image Error:" + e, Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(SetupActivity.this, "Username already exist!! Try different username :(", Toast.LENGTH_SHORT).show();
                                             }
                                         }
-                                    });
+                                    }
+                                    if (task.getResult().size() == 0) {
+
+                                        StorageReference image_path = storageReference.child("profile_images").child(user_id + ".jpg");
+                                        image_path.putFile(mainImageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+
+                                            @Override
+                                            public void onComplete(Task<UploadTask.TaskSnapshot> task) {
+
+                                                if (task.isSuccessful()) {
+                                                    storeFirestore(task, user_name, unique_name);
+                                                } else {
+                                                    dialog.dismiss();
+                                                    String e = Objects.requireNonNull(task.getException()).getMessage();
+                                                    Toast.makeText(SetupActivity.this, "Image Error:" + e, Toast.LENGTH_SHORT).show();
+                                                }
+                                            }
+                                        });
+                                    }
                                 }
-                            }
-                        });
-                    } else {
+                            });
+                        } else {
+                            dialog.dismiss();
+                            Toast.makeText(SetupActivity.this, "Username should not have spaces :(", Toast.LENGTH_SHORT).show();
+                        }
+                    } else if (mainImageURI == null) {
                         dialog.dismiss();
-                        Toast.makeText(SetupActivity.this, "Username should not have spaces :(", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(SetupActivity.this, "Profile picture is mandatory :(", Toast.LENGTH_SHORT).show();
+                    } else if (TextUtils.isEmpty(user_name) && TextUtils.isEmpty(unique_name)) {
+                        dialog.dismiss();
+                        Toast.makeText(SetupActivity.this, "All fields are mandatory!!", Toast.LENGTH_SHORT).show();
                     }
-                } else if (mainImageURI == null) {
-                    dialog.dismiss();
-                    Toast.makeText(SetupActivity.this, "Profile picture is mandatory :(", Toast.LENGTH_SHORT).show();
-                } else if (TextUtils.isEmpty(user_name) && TextUtils.isEmpty(unique_name)) {
-                    dialog.dismiss();
-                    Toast.makeText(SetupActivity.this, "All fields are mandatory!!", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(SetupActivity.this, "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -238,28 +242,24 @@ public class SetupActivity extends AppCompatActivity {
         userMap.put("unique_name", unique_name.toLowerCase());
         userMap.put("user_image", download_uri.toString());
 
-        firebaseFirestore
-                .collection("Users")
-                .document(user_id)
-                .set(userMap)
-                .addOnCompleteListener(new OnCompleteListener<Void>() {
+        firebaseFirestore.collection("Users").document(user_id).set(userMap).addOnCompleteListener(new OnCompleteListener<Void>() {
 
-                    @Override
-                    public void onComplete(Task<Void> task) {
+            @Override
+            public void onComplete(Task<Void> task) {
 
-                        if (task.isSuccessful()) {
+                if (task.isSuccessful()) {
 
-                            Toast.makeText(SetupActivity.this, "Settings saved", Toast.LENGTH_SHORT).show();
-                            Intent setUpIntent = new Intent(SetupActivity.this, MainActivity.class);
-                            startActivity(setUpIntent);
-                            finish();
-                        } else {
-                            dialog.dismiss();
-                            String e = Objects.requireNonNull(task.getException()).getMessage();
-                            Toast.makeText(SetupActivity.this, "Database Error:" + e, Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+                    Toast.makeText(SetupActivity.this, "Settings saved", Toast.LENGTH_SHORT).show();
+                    Intent setUpIntent = new Intent(SetupActivity.this, MainActivity.class);
+                    startActivity(setUpIntent);
+                    finish();
+                } else {
+                    dialog.dismiss();
+                    String e = Objects.requireNonNull(task.getException()).getMessage();
+                    Toast.makeText(SetupActivity.this, "Database Error:" + e, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     @Override
@@ -299,6 +299,12 @@ public class SetupActivity extends AppCompatActivity {
                 Toast.makeText(this, "Error:" + error, Toast.LENGTH_SHORT).show();
             }
         }
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
     @Override

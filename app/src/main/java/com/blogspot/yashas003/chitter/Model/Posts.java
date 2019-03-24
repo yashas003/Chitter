@@ -2,7 +2,7 @@ package com.blogspot.yashas003.chitter.Model;
 
 import java.util.Date;
 
-public class Posts {
+public class Posts extends com.blogspot.yashas003.chitter.Utils.PostId {
 
     private String user_id, image_url, desc, thumb;
     private Date time;

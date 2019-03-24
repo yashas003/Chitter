@@ -6,8 +6,8 @@
     android:layout_height="match_parent">
 
     <android.support.design.widget.AppBarLayout
-        android:id="@+id/appBarLayout2"
-        android:layout_width="match_parent"
+        android:id="@+id/saved_app_bar"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:elevation="4dp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -15,30 +15,43 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <android.support.v7.widget.Toolbar
-            android:id="@+id/likes_toolbar"
+            android:id="@+id/saved_posts_toolbar"
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:layout_marginTop="24dp"
             android:elevation="0dp"
-            app:title="Likes"
+            app:title="Saved posts"
             app:titleTextColor="@color/colorWhite" />
 
     </android.support.design.widget.AppBarLayout>
 
     <TextView
+        android:id="@+id/saved_post_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginBottom="8dp"
-        android:text="Likes"
-        android:textSize="30sp"
+        android:text="Saved Posts"
+        android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/appBarLayout2"
+        app:layout_constraintTop_toBottomOf="@+id/saved_app_bar"
         tools:ignore="HardcodedText" />
+
+    <com.varunest.sparkbutton.SparkButton
+        android:id="@+id/spark"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="32dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/saved_post_text"
+        app:layout_constraintVertical_bias="0.0"
+        app:sparkbutton_activeImage="@drawable/ic_likes"
+        app:sparkbutton_iconSize="30dp"
+        app:sparkbutton_inActiveImage="@drawable/ic_likes_outline" />
 
 </android.support.constraint.ConstraintLayout>

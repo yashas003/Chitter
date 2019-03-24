@@ -1,7 +1,10 @@
 package com.blogspot.yashas003.chitter.Activities;
 
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -11,6 +14,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.blogspot.yashas003.chitter.R;
 import com.blogspot.yashas003.chitter.Utils.CountryData;
@@ -59,11 +63,22 @@ public class PhNoActivity extends AppCompatActivity {
                     return;
                 }
 
-                Intent intent = new Intent(PhNoActivity.this, OtpActivity.class);
-                intent.putExtra("PhoneNumber", Number);
-                startActivity(intent);
-                finish();
+                if (isOnline()) {
+
+                    Intent intent = new Intent(PhNoActivity.this, OtpActivity.class);
+                    intent.putExtra("PhoneNumber", Number);
+                    startActivity(intent);
+                    finish();
+                } else {
+                    Toast.makeText(PhNoActivity.this, "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
+                }
             }
         });
+    }
+
+    private boolean isOnline() {
+        ConnectivityManager cm = (ConnectivityManager) this.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 }
