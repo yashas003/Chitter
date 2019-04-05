@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -23,6 +22,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.blogspot.yashas003.chitter.Activities.CommentsActivity;
+import com.blogspot.yashas003.chitter.Activities.FollowersActivity;
 import com.blogspot.yashas003.chitter.BuildConfig;
 import com.blogspot.yashas003.chitter.Model.Posts;
 import com.blogspot.yashas003.chitter.R;
@@ -82,12 +83,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         //Setting posts description=================================================================
         String description = posts.getDesc();
         if (description != null && !description.isEmpty()) {
+            viewHolder.description.setVisibility(View.VISIBLE);
             viewHolder.description.setText(description);
         } else {
-            viewHolder.description.setText("No comments!!");
-            viewHolder.description.setTextColor(Color.GRAY);
+            viewHolder.description.setVisibility(View.GONE);
         }
-
 
         //Setting posts Picture=====================================================================
         Picasso.get().load(posts.getThumb()).placeholder(R.mipmap.postback)
@@ -97,12 +97,10 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                         Picasso.get().load(posts.getImage_url()).placeholder(viewHolder.postImage.getDrawable())
                                 .into(viewHolder.postImage);
                     }
-
                     @Override
                     public void onError(Exception e) {
                     }
                 });
-
 
         //Setting posts owner details===============================================================
         firestore.collection("Users").document(posts.getUser_id()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -120,7 +118,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             }
         });
 
-
         //Setting posted date=======================================================================
         try {
             long millisec = posts.getTime().getTime();
@@ -130,14 +127,15 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             Log.e(TAG, "onBindViewHolder: ", e);
         }
 
-
         //Getting likes count=======================================================================
-        isLiked(posts.PostId, viewHolder.likeBtn);
+        isLiked(posts.getPost_id(), viewHolder.likeBtn);
 
 
-        //Setting posts likes count===============================================================
-        likesCount(posts.PostId, viewHolder.likesCount);
+        //Setting posts likes count=================================================================
+        likesCount(posts.getPost_id(), viewHolder.likesCount);
 
+        //Setting saved posts=======================================================================
+        isSaved(posts.getPost_id(), viewHolder.saveBtn);
 
         //Double Tap to like the post===============================================================
         viewHolder.postImage.setOnTouchListener(new View.OnTouchListener() {
@@ -145,7 +143,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             private GestureDetector gestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
                 @Override
                 public boolean onDoubleTap(MotionEvent e) {
-                    doubleTapToLike(viewHolder.likeBtn, posts.PostId);
+                    doubleTapToLike(viewHolder.likeBtn, posts.getPost_id());
 
                     //Double Tap animation============================================================
                     showLikeAnimation(viewHolder.showLike);
@@ -160,15 +158,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             }
         });
 
-
-        //Like the post=============================================================================
+        //Single Tap to like the post===============================================================
         viewHolder.likeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                likeThePost(viewHolder.likeBtn, posts.PostId);
+                likeThePost(viewHolder.likeBtn, posts.getPost_id());
             }
         });
-
 
         //Sharing the post Image====================================================================
         viewHolder.shareBtn.setOnClickListener(new View.OnClickListener() {
@@ -178,6 +174,56 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                 sharePostImage(bitmap, v);
             }
         });
+
+        //Saving the post===========================================================================
+        viewHolder.saveBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (viewHolder.saveBtn.getTag().equals("save")) {
+                    FirebaseDatabase.getInstance().getReference()
+                            .child("Saves").child(firebaseUser.getUid()).child(posts.getPost_id()).setValue(true);
+                } else {
+                    FirebaseDatabase.getInstance().getReference()
+                            .child("Saves").child(firebaseUser.getUid()).child(posts.getPost_id()).removeValue();
+                }
+            }
+        });
+
+        //Show who liked the post===================================================================
+        viewHolder.likesCount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent followersIntent = new Intent(v.getContext(), FollowersActivity.class);
+                followersIntent.putExtra("id", posts.getPost_id());
+                followersIntent.putExtra("title", "likes");
+                v.getContext().startActivity(followersIntent);
+            }
+        });
+
+        //Commenting the post=======================================================================
+        viewHolder.commentBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent comment = new Intent(v.getContext(), CommentsActivity.class);
+                comment.putExtra("post_id", posts.getPost_id());
+                comment.putExtra("owner_id", posts.getUser_id());
+                v.getContext().startActivity(comment);
+            }
+        });
+
+        viewHolder.comment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent comment = new Intent(v.getContext(), CommentsActivity.class);
+                comment.putExtra("post_id", posts.getPost_id());
+                comment.putExtra("owner_id", posts.getUser_id());
+                v.getContext().startActivity(comment);
+            }
+        });
+
+        //getting comments==========================================================================
+        getComments(posts.getPost_id(), viewHolder.comment);
     }
 
     private void doubleTapToLike(View likeBtn, String post_id) {
@@ -293,12 +339,57 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
+    private void isSaved(final String postId, final ImageView saveBtn) {
+
+        databaseReference = FirebaseDatabase.getInstance().getReference()
+                .child("Saves").child(firebaseUser.getUid());
+
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if (dataSnapshot.child(postId).exists()) {
+                    saveBtn.setImageResource(R.drawable.ic_bookmark_filled);
+                    saveBtn.setTag("saved");
+                } else {
+                    saveBtn.setImageResource(R.drawable.ic_bookmark);
+                    saveBtn.setTag("save");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
+
+    private void getComments(String post_id, final TextView comments) {
+
+        databaseReference = FirebaseDatabase.getInstance().getReference("Comments").child(post_id);
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+
+                if (dataSnapshot.getChildrenCount() == 0) {
+                    comments.setText("No comments!!");
+                } else {
+                    comments.setText("View all " + dataSnapshot.getChildrenCount() + " comments");
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
+    }
+
     class ViewHolder extends RecyclerView.ViewHolder {
 
         TextView description;
         TextView postDate;
         TextView postOwner;
         TextView likesCount;
+        TextView comment;
 
         ImageView postUserImage;
         ImageView commentBtn;
@@ -318,6 +409,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             commentBtn = itemView.findViewById(R.id.comment_post);
             likesCount = itemView.findViewById(R.id.likes_count);
             showLike = itemView.findViewById(R.id.like_picture);
+            comment = itemView.findViewById(R.id.post_comment);
             postImage = itemView.findViewById(R.id.post_image);
             shareBtn = itemView.findViewById(R.id.share_post);
             postDate = itemView.findViewById(R.id.post_date);

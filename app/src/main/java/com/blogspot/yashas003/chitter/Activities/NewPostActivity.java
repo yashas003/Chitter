@@ -164,8 +164,8 @@ public class NewPostActivity extends AppCompatActivity {
 
                             compressedImageFile = new Compressor(NewPostActivity.this)
                                     .setQuality(1)
-                                    .setMaxHeight(1)
-                                    .setMaxWidth(1)
+                                    .setMaxHeight(30)
+                                    .setMaxWidth(30)
                                     .compressToBitmap(newImageFile);
                         } catch (IOException e) {
                             e.printStackTrace();
@@ -181,12 +181,14 @@ public class NewPostActivity extends AppCompatActivity {
                             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
                                 String downloadThumbUri = taskSnapshot.getDownloadUrl().toString();
+                                String post_id = UUID.randomUUID().toString();
 
                                 Map<String, Object> postMap = new HashMap<>();
                                 postMap.put("image_url", downLoadUri);
                                 postMap.put("thumb", downloadThumbUri);
                                 postMap.put("desc", desc);
                                 postMap.put("user_id", user_id);
+                                postMap.put("post_id", post_id);
                                 postMap.put("time", FieldValue.serverTimestamp());
 
                                 firebaseFirestore.collection("Posts").add(postMap).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {

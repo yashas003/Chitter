@@ -1,12 +1,10 @@
 package com.blogspot.yashas003.chitter.Adapters;
 
 import android.content.Context;
+import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -15,7 +13,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.blogspot.yashas003.chitter.Fragments.UserProfileFragment;
+import com.blogspot.yashas003.chitter.Activities.UsersProfileActivity;
 import com.blogspot.yashas003.chitter.Model.Users;
 import com.blogspot.yashas003.chitter.R;
 import com.google.firebase.auth.FirebaseAuth;
@@ -103,17 +101,9 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
 
                 if (isOnline(v)) {
 
-                    Bundle bundle = new Bundle();
-                    bundle.putString("user_id", users.getUser_id());
-
-                    Fragment userProfile = new UserProfileFragment();
-                    userProfile.setArguments(bundle);
-                    ((FragmentActivity) v
-                            .getContext()).getSupportFragmentManager()
-                            .beginTransaction()
-                            .addToBackStack(null)
-                            .replace(R.id.fragment_container, userProfile)
-                            .commit();
+                    Intent userProfile = new Intent(v.getContext(), UsersProfileActivity.class);
+                    userProfile.putExtra("user_id", users.getUser_id());
+                    v.getContext().startActivity(userProfile);
                 } else {
                     Toast.makeText(v.getContext(), "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
                 }

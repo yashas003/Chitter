@@ -66,7 +66,7 @@
                                 <PersistentState>
                                   <option name="values">
                                     <map>
-                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/navigation/ic_more_vert_black_24dp.xml" />
+                                      <entry key="url" value="jar:file:/C:/Program%20Files/Android/Android%20Studio/plugins/android/lib/android.jar!/images/material_design_icons/content/ic_send_black_24dp.xml" />
                                     </map>
                                   </option>
                                 </PersistentState>
@@ -77,11 +77,11 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="height" value="432" />
-                            <entry key="outputName" value="ic_bookmark_filled" />
+                            <entry key="height" value="448" />
+                            <entry key="outputName" value="ic_send_text" />
                             <entry key="overrideSize" value="true" />
-                            <entry key="sourceFile" value="C:\Users\Yashas\Desktop\bookmark-black-shape.svg" />
-                            <entry key="width" value="432" />
+                            <entry key="sourceFile" value="C:\Users\Yashas\Desktop\right-arrow.svg" />
+                            <entry key="width" value="448" />
                           </map>
                         </option>
                       </PersistentState>

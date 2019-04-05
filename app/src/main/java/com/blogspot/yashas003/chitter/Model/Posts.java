@@ -2,19 +2,20 @@ package com.blogspot.yashas003.chitter.Model;
 
 import java.util.Date;
 
-public class Posts extends com.blogspot.yashas003.chitter.Utils.PostId {
+public class Posts {
 
-    private String user_id, image_url, desc, thumb;
+    private String user_id, image_url, desc, thumb, post_id;
     private Date time;
 
     public Posts() {
     }
 
-    public Posts(String user_id, String image_url, String desc, String thumb, Date time) {
+    public Posts(String user_id, String image_url, String desc, String thumb, String post_id, Date time) {
         this.user_id = user_id;
         this.image_url = image_url;
         this.desc = desc;
         this.thumb = thumb;
+        this.post_id = post_id;
         this.time = time;
     }
 
@@ -48,6 +49,14 @@ public class Posts extends com.blogspot.yashas003.chitter.Utils.PostId {
 
     public void setThumb(String thumb) {
         this.thumb = thumb;
+    }
+
+    public String getPost_id() {
+        return post_id;
+    }
+
+    public void setPost_id(String post_id) {
+        this.post_id = post_id;
     }
 
     public Date getTime() {

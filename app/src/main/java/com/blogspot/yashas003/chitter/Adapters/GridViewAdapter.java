@@ -1,22 +1,26 @@
 package com.blogspot.yashas003.chitter.Adapters;
 
+import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.blogspot.yashas003.chitter.Activities.PostDetailsActivity;
 import com.blogspot.yashas003.chitter.Model.Posts;
 import com.blogspot.yashas003.chitter.R;
 import com.squareup.picasso.Picasso;
 
-import java.util.ArrayList;
+import java.util.List;
 
-public class StaggeredRecyclerViewAdapter extends RecyclerView.Adapter<StaggeredRecyclerViewAdapter.ViewHolder> {
-    private ArrayList<Posts> post_list;
+public class GridViewAdapter extends RecyclerView.Adapter<GridViewAdapter.ViewHolder> {
 
-    public StaggeredRecyclerViewAdapter(ArrayList<Posts> post_list) {
+    private List<Posts> post_list;
+
+    public GridViewAdapter(List<Posts> post_list) {
         this.post_list = post_list;
     }
 
@@ -28,10 +32,22 @@ public class StaggeredRecyclerViewAdapter extends RecyclerView.Adapter<Staggered
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder viewHolder, final int i) {
+    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
 
-        Posts posts = post_list.get(i);
+        final Posts posts = post_list.get(i);
+        viewHolder.setIsRecyclable(false);
+
         Picasso.get().load(posts.getImage_url()).into(viewHolder.image);
+
+        viewHolder.cardView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Intent postIntent = new Intent(v.getContext(), PostDetailsActivity.class);
+                postIntent.putExtra("post_id", posts.getPost_id());
+                v.getContext().startActivity(postIntent);
+            }
+        });
     }
 
     @Override
@@ -40,10 +56,14 @@ public class StaggeredRecyclerViewAdapter extends RecyclerView.Adapter<Staggered
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {
+
         ImageView image;
+        CardView cardView;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
+
+            this.cardView = itemView.findViewById(R.id.parent);
             this.image = itemView.findViewById(R.id.grid_post_image);
         }
     }

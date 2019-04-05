@@ -25,7 +25,6 @@ import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.graphics.Palette;
 import android.support.v7.widget.CardView;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
@@ -43,9 +42,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.blogspot.yashas003.chitter.Activities.EditProfileActivity;
+import com.blogspot.yashas003.chitter.Activities.FollowersActivity;
 import com.blogspot.yashas003.chitter.Activities.SavedPostsActivity;
 import com.blogspot.yashas003.chitter.Activities.SettingsActivity;
-import com.blogspot.yashas003.chitter.Adapters.StaggeredRecyclerViewAdapter;
+import com.blogspot.yashas003.chitter.Adapters.GridViewAdapter;
 import com.blogspot.yashas003.chitter.BuildConfig;
 import com.blogspot.yashas003.chitter.Model.Posts;
 import com.blogspot.yashas003.chitter.R;
@@ -87,7 +87,7 @@ public class ProfileFragment extends Fragment {
     Menu menu;
     MenuItem menuItem;
 
-    StaggeredRecyclerViewAdapter staggeredRecyclerViewAdapter;
+    GridViewAdapter gridViewAdapter;
     StaggeredGridLayoutManager staggeredGridLayoutManager;
     FloatingActionButton savedPosts;
     CollapsingToolbarLayout ctl;
@@ -191,6 +191,26 @@ public class ProfileFragment extends Fragment {
             }
         });
 
+        followers.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent followersIntent = new Intent(getActivity(), FollowersActivity.class);
+                followersIntent.putExtra("id", user_id);
+                followersIntent.putExtra("title", "followers");
+                startActivity(followersIntent);
+            }
+        });
+
+        following.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent followersIntent = new Intent(getActivity(), FollowersActivity.class);
+                followersIntent.putExtra("id", user_id);
+                followersIntent.putExtra("title", "following");
+                startActivity(followersIntent);
+            }
+        });
+
         return view;
     }
 
@@ -208,10 +228,10 @@ public class ProfileFragment extends Fragment {
 
                     if (task.getResult().exists()) {
 
-                        staggeredRecyclerViewAdapter = new StaggeredRecyclerViewAdapter(mImageUrls);
-                        staggeredGridLayoutManager = new StaggeredGridLayoutManager(NUM_COLUMNS, LinearLayoutManager.VERTICAL);
+                        gridViewAdapter = new GridViewAdapter(mImageUrls);
+                        staggeredGridLayoutManager = new StaggeredGridLayoutManager(NUM_COLUMNS, StaggeredGridLayoutManager.VERTICAL);
                         recyclerView.setLayoutManager(staggeredGridLayoutManager);
-                        recyclerView.setAdapter(staggeredRecyclerViewAdapter);
+                        recyclerView.setAdapter(gridViewAdapter);
                         getPosts();
                         getFollowing();
                         getFollowers();
@@ -312,7 +332,6 @@ public class ProfileFragment extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 following.setText("" + dataSnapshot.getChildrenCount());
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
             }
@@ -360,7 +379,7 @@ public class ProfileFragment extends Fragment {
                             }
                         }
                         Collections.reverse(mImageUrls);
-                        staggeredRecyclerViewAdapter.notifyDataSetChanged();
+                        gridViewAdapter.notifyDataSetChanged();
                     }
                 }
             }

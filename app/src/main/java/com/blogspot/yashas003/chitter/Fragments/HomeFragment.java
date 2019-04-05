@@ -93,11 +93,12 @@ public class HomeFragment extends Fragment {
         postListView.setAdapter(postAdapter);
         postListView.setHasFixedSize(true);
 
-        checkFollowing();
         return view;
     }
 
-    private void checkFollowing() {
+    @Override
+    public void onStart() {
+        super.onStart();
 
         following_list = new ArrayList<>();
         mreference = FirebaseDatabase.getInstance().getReference("Follow").child(mUser).child("following");
@@ -111,7 +112,6 @@ public class HomeFragment extends Fragment {
                 }
                 readPosts();
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
             }
@@ -134,23 +134,21 @@ public class HomeFragment extends Fragment {
                     for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
                         if (doc.getType() == DocumentChange.Type.ADDED) {
 
-                            String post_id = doc.getDocument().getId();
-                            Posts posts = doc.getDocument().toObject(Posts.class).withId(post_id);
+                            Posts posts = doc.getDocument().toObject(Posts.class);
 
                             if (posts.getUser_id().equals(mUser)) {
                                 post_list.add(posts);
-                                postListView.setVisibility(View.VISIBLE);
                                 loader.setVisibility(View.GONE);
                             }
                             for (String id : following_list) {
                                 if (posts.getUser_id().equals(id)) {
                                     post_list.add(posts);
-                                    postListView.setVisibility(View.VISIBLE);
                                     loader.setVisibility(View.GONE);
                                 }
                             }
+                            postListView.setVisibility(View.VISIBLE);
+                            postAdapter.notifyDataSetChanged();
                         }
-                        postAdapter.notifyDataSetChanged();
                     }
                 }
             }

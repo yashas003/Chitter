@@ -23,16 +23,28 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".Activities.OtpActivity" />
+        <activity android:name=".Activities.MainActivity" />
+        <activity android:name=".Activities.PhNoActivity" />
         <activity android:name=".Activities.LoginActivity" />
         <activity android:name=".Activities.SetupActivity" />
+        <activity android:name=".Activities.EmailActivity" />
         <activity android:name=".Activities.SignUpActivity" />
-        <activity android:name=".Activities.MainActivity" />
+        <activity android:name=".Activities.SettingsActivity" />
+        <activity android:name=".Activities.FollowersActivity" />
+        <activity android:name=".Activities.StartPageActivity" />
+        <activity android:name=".Activities.SavedPostsActivity" />
+        <activity android:name=".Activities.EditProfileActivity" />
+        <activity android:name=".Activities.UsersProfileActivity" />
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
         <activity
             android:name=".Activities.NewPostActivity"
             android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name=".Activities.CommentsActivity"
+            android:windowSoftInputMode="adjustResize|stateHidden" />
 
         <meta-data
             android:name="preloaded_fonts"
@@ -48,13 +60,7 @@
                 android:resource="@xml/filepaths" />
         </provider>
 
-        <activity android:name=".Activities.EditProfileActivity" />
-        <activity android:name=".Activities.PhNoActivity" />
-        <activity android:name=".Activities.OtpActivity" />
-        <activity android:name=".Activities.EmailActivity" />
-        <activity android:name=".Activities.SettingsActivity" />
-        <activity android:name=".Activities.StartPageActivity" />
-        <activity android:name=".Activities.SavedPostsActivity" />
+        <activity android:name=".Activities.PostDetailsActivity"></activity>
     </application>
 
 </manifest>
