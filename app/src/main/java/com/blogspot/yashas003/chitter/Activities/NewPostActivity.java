@@ -9,6 +9,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
@@ -25,7 +26,6 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -47,6 +47,7 @@ import id.zelory.compressor.Compressor;
 public class NewPostActivity extends AppCompatActivity {
     FirebaseFirestore firebaseFirestore;
     StorageReference storageReference;
+    FloatingActionButton addLocation;
     Bitmap compressedImageFile;
     FirebaseAuth mAuth;
     String user_id;
@@ -62,7 +63,8 @@ public class NewPostActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_post);
 
         if (Build.VERSION.SDK_INT >= 21) {
-            getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimary));
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
             getWindow().setNavigationBarColor(Color.BLACK);
         }
 
@@ -99,6 +101,15 @@ public class NewPostActivity extends AppCompatActivity {
         });
 
         description = findViewById(R.id.description);
+
+        addLocation = findViewById(R.id.add_location);
+        addLocation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                Toast.makeText(NewPostActivity.this, "CHILL, Developer lazy enough to implement location feature :(  ", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override
@@ -191,9 +202,9 @@ public class NewPostActivity extends AppCompatActivity {
                                 postMap.put("post_id", post_id);
                                 postMap.put("time", FieldValue.serverTimestamp());
 
-                                firebaseFirestore.collection("Posts").add(postMap).addOnCompleteListener(new OnCompleteListener<DocumentReference>() {
+                                firebaseFirestore.collection("Posts").document(post_id).set(postMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
-                                    public void onComplete(@NonNull Task<DocumentReference> task) {
+                                    public void onComplete(@NonNull Task<Void> task) {
 
                                         if (task.isSuccessful()) {
 

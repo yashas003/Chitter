@@ -54,6 +54,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.nightonke.boommenu.BoomButtons.BoomButton;
 import com.nightonke.boommenu.BoomButtons.ButtonPlaceEnum;
@@ -71,7 +72,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
@@ -82,12 +82,12 @@ import static android.support.constraint.Constraints.TAG;
 
 public class UsersProfileActivity extends AppCompatActivity {
 
-    GridViewAdapter gridViewAdapter;
     StaggeredGridLayoutManager staggeredGridLayoutManager;
     ConstraintLayout downloadProfileImage;
     ConstraintLayout shareProfileImage;
+    ConstraintLayout buttonContainer;
+    GridViewAdapter gridViewAdapter;
     ProgressBar progressBar;
-    ConstraintLayout likeProfileImage;
     CollapsingToolbarLayout collapseBar;
     RecyclerView postsRecyclerView;
     CircleImageView userProfileImage;
@@ -253,6 +253,11 @@ public class UsersProfileActivity extends AppCompatActivity {
                 startActivity(followersIntent);
             }
         });
+
+        gridViewAdapter = new GridViewAdapter(mImageUrls);
+        staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL);
+        postsRecyclerView.setLayoutManager(staggeredGridLayoutManager);
+        postsRecyclerView.setAdapter(gridViewAdapter);
     }
 
     @Override
@@ -269,10 +274,6 @@ public class UsersProfileActivity extends AppCompatActivity {
 
                     if (task.getResult().exists()) {
 
-                        gridViewAdapter = new GridViewAdapter(mImageUrls);
-                        staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL);
-                        postsRecyclerView.setLayoutManager(staggeredGridLayoutManager);
-                        postsRecyclerView.setAdapter(gridViewAdapter);
                         getPosts();
                         getFollowing();
                         getFollowers();
@@ -403,61 +404,71 @@ public class UsersProfileActivity extends AppCompatActivity {
 
     private void getPosts() {
 
-        mFirestore.collection("Posts").addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+        mFirestore.collection("Posts").orderBy("time", Query.Direction.DESCENDING)
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
 
-                int postCount = 0;
-                if (e != null) {
-                    Log.e(TAG, "onEvent: ", e);
-                } else {
-                    mImageUrls.clear();
-                    for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
+                        int postCount = 0;
+                        if (e != null) {
+                            Log.e(TAG, "onEvent: ", e);
+                        } else {
+                            mImageUrls.clear();
+                            for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
 
-                        if (doc.getType() == DocumentChange.Type.ADDED) {
-                            Posts posts = doc.getDocument().toObject(Posts.class);
+                                if (doc.getType() == DocumentChange.Type.ADDED) {
+                                    Posts posts = doc.getDocument().toObject(Posts.class);
 
-                            if (posts.getUser_id().equals(user_id)) {
-                                postCount++;
-                                users_postCount.setText("" + postCount);
-                                mImageUrls.add(posts);
-                                postsRecyclerView.setVisibility(View.VISIBLE);
-                            } else {
-                                noPosts.setVisibility(View.VISIBLE);
+                                    if (posts.getUser_id().equals(user_id)) {
+                                        postCount++;
+                                        users_postCount.setText("" + postCount);
+                                        mImageUrls.add(posts);
+                                        postsRecyclerView.setVisibility(View.VISIBLE);
+                                    } else {
+                                        noPosts.setVisibility(View.VISIBLE);
+                                    }
+                                }
+                                gridViewAdapter.notifyDataSetChanged();
                             }
                         }
-                        Collections.reverse(mImageUrls);
-                        gridViewAdapter.notifyDataSetChanged();
                     }
-                }
-            }
-        });
+                });
     }
 
     private void followUser() {
 
-        if (followBtnText.getText().toString().equals("Follow")) {
+        switch (followBtnText.getText().toString()) {
+            case "Follow":
 
-            FirebaseDatabase.getInstance().getReference()
-                    .child("Follow").child(firebaseUser.getUid())
-                    .child("following").child(user_id)
-                    .setValue(true);
+                FirebaseDatabase.getInstance().getReference()
+                        .child("Follow").child(firebaseUser.getUid())
+                        .child("following").child(user_id)
+                        .setValue(true);
 
-            FirebaseDatabase.getInstance().getReference()
-                    .child("Follow").child(user_id)
-                    .child("followers").child(firebaseUser.getUid())
-                    .setValue(true);
-        } else {
+                FirebaseDatabase.getInstance().getReference()
+                        .child("Follow").child(user_id)
+                        .child("followers").child(firebaseUser.getUid())
+                        .setValue(true);
+                break;
 
-            FirebaseDatabase.getInstance().getReference()
-                    .child("Follow").child(firebaseUser.getUid())
-                    .child("following").child(user_id)
-                    .removeValue();
+            case "Following":
 
-            FirebaseDatabase.getInstance().getReference()
-                    .child("Follow").child(user_id)
-                    .child("followers").child(firebaseUser.getUid())
-                    .removeValue();
+                FirebaseDatabase.getInstance().getReference()
+                        .child("Follow").child(firebaseUser.getUid())
+                        .child("following").child(user_id)
+                        .removeValue();
+
+                FirebaseDatabase.getInstance().getReference()
+                        .child("Follow").child(user_id)
+                        .child("followers").child(firebaseUser.getUid())
+                        .removeValue();
+                break;
+
+            default:
+
+                Intent editIntent = new Intent(UsersProfileActivity.this, EditProfileActivity.class);
+                startActivity(editIntent);
+                break;
         }
     }
 
@@ -547,28 +558,30 @@ public class UsersProfileActivity extends AppCompatActivity {
 
     private void showProfileImage() {
 
-
         Dialog saveImageDialog = new Dialog(this);
         saveImageDialog.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
         saveImageDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         saveImageDialog.setContentView(R.layout.save_image);
         saveImageDialog.show();
 
-        saveProfileImage = saveImageDialog.findViewById(R.id.save_image);
-        Picasso
-                .get()
-                .load(image)
-                .networkPolicy(NetworkPolicy.OFFLINE)
-                .placeholder(R.mipmap.placeholder)
-                .into(saveProfileImage);
-
-        likeProfileImage = saveImageDialog.findViewById(R.id.like);
-        likeProfileImage.setOnClickListener(new View.OnClickListener() {
+        buttonContainer = saveImageDialog.findViewById(R.id.button_container);
+        DatabaseReference reference = FirebaseDatabase.getInstance().getReference()
+                .child("Follow").child(firebaseUser.getUid()).child("following");
+        reference.addValueEventListener(new ValueEventListener() {
             @Override
-            public void onClick(View v) {
-                Toast.makeText(UsersProfileActivity.this, "Yet to implement this feature.", Toast.LENGTH_SHORT).show();
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.child(user_id).exists()) {
+                    buttonContainer.setVisibility(View.VISIBLE);
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
             }
         });
+
+        saveProfileImage = saveImageDialog.findViewById(R.id.save_image);
+        Picasso.get().load(image).networkPolicy(NetworkPolicy.OFFLINE).placeholder(R.mipmap.placeholder).into(saveProfileImage);
 
         shareProfileImage = saveImageDialog.findViewById(R.id.share);
         shareProfileImage.setOnClickListener(new View.OnClickListener() {
@@ -597,7 +610,7 @@ public class UsersProfileActivity extends AppCompatActivity {
                     shareIntent.setDataAndType(contentUri, getContentResolver().getType(contentUri));
                     shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
                     shareIntent.setType("image/*");
-                    startActivity(Intent.createChooser(shareIntent, "Share Using"));
+                    startActivity(Intent.createChooser(shareIntent, "Share using"));
                 }
             }
         });
@@ -651,10 +664,16 @@ public class UsersProfileActivity extends AppCompatActivity {
         reference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if (dataSnapshot.child(userID).exists()) {
-                    btnText.setText("Following");
+
+                if (!firebaseUser.getUid().equals(userID)) {
+
+                    if (dataSnapshot.child(userID).exists()) {
+                        btnText.setText("Following");
+                    } else {
+                        btnText.setText("Follow");
+                    }
                 } else {
-                    btnText.setText("Follow");
+                    btnText.setText("EDIT");
                 }
             }
 

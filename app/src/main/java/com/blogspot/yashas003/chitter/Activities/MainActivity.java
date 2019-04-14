@@ -13,7 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.blogspot.yashas003.chitter.Fragments.HomeFragment;
-import com.blogspot.yashas003.chitter.Fragments.LikesFragment;
+import com.blogspot.yashas003.chitter.Fragments.NotificationFragment;
 import com.blogspot.yashas003.chitter.Fragments.ProfileFragment;
 import com.blogspot.yashas003.chitter.Fragments.SearchFragment;
 import com.blogspot.yashas003.chitter.R;
@@ -50,8 +50,8 @@ public class MainActivity extends AppCompatActivity {
                             startActivity(new Intent(MainActivity.this, NewPostActivity.class));
                             return false;
 
-                        case R.id.ic_likes:
-                            selectedFragment = new LikesFragment();
+                        case R.id.ic_notifications:
+                            selectedFragment = new NotificationFragment();
                             break;
 
                         case R.id.ic_profile:

@@ -24,7 +24,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         app:layout_constraintBottom_toBottomOf="@+id/post_user_image"
-        app:layout_constraintEnd_toStartOf="@+id/imageView5"
+        app:layout_constraintEnd_toStartOf="@+id/post_manage"
         app:layout_constraintStart_toEndOf="@+id/post_user_image"
         app:layout_constraintTop_toTopOf="@+id/post_user_image">
 
@@ -56,7 +56,7 @@
     </android.support.constraint.ConstraintLayout>
 
     <ImageView
-        android:id="@+id/imageView5"
+        android:id="@+id/post_manage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -183,7 +183,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="4dp"
             android:layout_marginBottom="16dp"
             android:textColor="@color/colorGray"
             android:textSize="10sp"

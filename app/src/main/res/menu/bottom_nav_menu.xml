@@ -17,9 +17,9 @@
         android:title="Photo"
         tools:ignore="HardcodedText" />
     <item
-        android:id="@+id/ic_likes"
-        android:icon="@drawable/ic_likes"
-        android:title="Likes"
+        android:id="@+id/ic_notifications"
+        android:icon="@drawable/ic_notification"
+        android:title="Notifications"
         tools:ignore="HardcodedText" />
     <item
         android:id="@+id/ic_profile"

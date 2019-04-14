@@ -9,7 +9,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.blogspot.yashas003.chitter.Activities.PostDetailsActivity;
+import com.blogspot.yashas003.chitter.Activities.PostDetailActivity;
 import com.blogspot.yashas003.chitter.Model.Posts;
 import com.blogspot.yashas003.chitter.R;
 import com.squareup.picasso.Picasso;
@@ -35,7 +35,6 @@ public class GridViewAdapter extends RecyclerView.Adapter<GridViewAdapter.ViewHo
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
 
         final Posts posts = post_list.get(i);
-        viewHolder.setIsRecyclable(false);
 
         Picasso.get().load(posts.getImage_url()).into(viewHolder.image);
 
@@ -43,7 +42,7 @@ public class GridViewAdapter extends RecyclerView.Adapter<GridViewAdapter.ViewHo
             @Override
             public void onClick(View v) {
 
-                Intent postIntent = new Intent(v.getContext(), PostDetailsActivity.class);
+                Intent postIntent = new Intent(v.getContext(), PostDetailActivity.class);
                 postIntent.putExtra("post_id", posts.getPost_id());
                 v.getContext().startActivity(postIntent);
             }

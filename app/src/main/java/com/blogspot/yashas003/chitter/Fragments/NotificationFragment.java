@@ -15,7 +15,9 @@ import android.view.ViewGroup;
 
 import com.blogspot.yashas003.chitter.R;
 
-public class LikesFragment extends Fragment {
+import java.util.Objects;
+
+public class NotificationFragment extends Fragment {
     BottomNavigationView bottomNavigationView;
     Menu menu;
     MenuItem menuItem;
@@ -25,11 +27,11 @@ public class LikesFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_likes, container, false);
+        View view = inflater.inflate(R.layout.fragment_notification, container, false);
 
-        bottomNavigationView = getActivity().findViewById(R.id.bottom_navigation);
+        bottomNavigationView = Objects.requireNonNull(getActivity()).findViewById(R.id.bottom_navigation);
         menu = bottomNavigationView.getMenu();
-        menuItem = menu.findItem(R.id.ic_likes);
+        menuItem = menu.findItem(R.id.ic_notifications);
         if (!menuItem.isChecked()) {
             menuItem.setChecked(true);
         }

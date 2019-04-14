@@ -1,5 +1,4 @@
 apply plugin: 'com.android.application'
-apply plugin: 'com.google.gms.google-services'
 
 android {
     compileSdkVersion 28
@@ -31,6 +30,14 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
+    // Firebase
+    implementation 'com.google.firebase:firebase-auth:15.0.0'
+    implementation 'com.google.firebase:firebase-core:15.0.0'
+    implementation 'com.google.firebase:firebase-storage:15.0.0'
+    implementation 'com.google.firebase:firebase-database:15.0.0'
+    implementation 'com.google.firebase:firebase-firestore:15.0.0'
+    apply plugin: 'com.google.gms.google-services'
+
     // Image Loaders
     implementation 'com.squareup.picasso:picasso:2.71828'
 
@@ -46,13 +53,6 @@ dependencies {
     // Image Compressor
     implementation 'id.zelory:compressor:2.1.0'
 
+    // Like Button
     implementation 'com.github.varunest:sparkbutton:1.0.6'
-
-    // Firebase
-    implementation 'com.google.firebase:firebase-auth:15.0.0'
-    implementation 'com.google.firebase:firebase-core:15.0.0'
-    implementation 'com.google.firebase:firebase-storage:15.0.0'
-    implementation 'com.google.firebase:firebase-database:15.0.0'
-    implementation 'com.google.firebase:firebase-firestore:15.0.0'
-    apply plugin: 'com.google.gms.google-services'
 }

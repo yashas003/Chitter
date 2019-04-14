@@ -12,7 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.blogspot.yashas003.chitter.Adapters.PostAdapter;
+import com.blogspot.yashas003.chitter.Adapters.SinglePostAdapter;
 import com.blogspot.yashas003.chitter.Model.Posts;
 import com.blogspot.yashas003.chitter.R;
 import com.google.firebase.firestore.DocumentChange;
@@ -27,13 +27,13 @@ import java.util.List;
 
 import static android.support.constraint.Constraints.TAG;
 
-public class PostDetailsActivity extends AppCompatActivity {
+public class PostDetailActivity extends AppCompatActivity {
     Toolbar toolbar;
     RecyclerView detailRecyclerView;
     ProgressBar loader;
 
     String postId;
-    PostAdapter postAdapter;
+    SinglePostAdapter singlePostAdapter;
     List<Posts> postsList;
 
     ListenerRegistration query;
@@ -42,7 +42,7 @@ public class PostDetailsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_post_details);
+        setContentView(R.layout.activity_post_detail);
 
         if (Build.VERSION.SDK_INT >= 21) {
             getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
@@ -68,12 +68,12 @@ public class PostDetailsActivity extends AppCompatActivity {
         mfirestore = FirebaseFirestore.getInstance();
 
         postsList = new ArrayList<>();
-        postAdapter = new PostAdapter(postsList);
+        singlePostAdapter = new SinglePostAdapter(this, postsList);
 
         detailRecyclerView = findViewById(R.id.detail_post_recyclerView);
         detailRecyclerView.setHasFixedSize(true);
         detailRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        detailRecyclerView.setAdapter(postAdapter);
+        detailRecyclerView.setAdapter(singlePostAdapter);
 
         readPosts();
     }
@@ -99,7 +99,7 @@ public class PostDetailsActivity extends AppCompatActivity {
                                 detailRecyclerView.setVisibility(View.VISIBLE);
                                 loader.setVisibility(View.GONE);
                             }
-                            postAdapter.notifyDataSetChanged();
+                            singlePostAdapter.notifyDataSetChanged();
                         }
                     }
                 }

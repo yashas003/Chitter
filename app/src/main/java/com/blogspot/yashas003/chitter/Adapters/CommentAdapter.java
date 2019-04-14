@@ -15,8 +15,6 @@ import com.blogspot.yashas003.chitter.Model.Comments;
 import com.blogspot.yashas003.chitter.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.squareup.picasso.Picasso;
@@ -28,7 +26,6 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
     private Context mContext;
     private List<Comments> mComments;
 
-    private FirebaseUser mFirebaseUser;
     private FirebaseFirestore mFirestore;
 
     public CommentAdapter(Context mContext, List<Comments> mComments) {
@@ -41,7 +38,6 @@ public class CommentAdapter extends RecyclerView.Adapter<CommentAdapter.ViewHold
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.comment_item, viewGroup, false);
         mFirestore = FirebaseFirestore.getInstance();
-        mFirebaseUser = FirebaseAuth.getInstance().getCurrentUser();
         return new CommentAdapter.ViewHolder(view);
     }
 

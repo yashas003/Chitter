@@ -16,13 +16,18 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         tools:ignore="AllowBackup,GoogleAppIndexingWarning,InnerclassSeparator">
-        <activity android:name=".Activities.SplashActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
+        <activity android:name=".Activities.SplashActivity">
+
+            <intent-filter>
+
+                <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+
             </intent-filter>
+
         </activity>
+
         <activity android:name=".Activities.OtpActivity" />
         <activity android:name=".Activities.MainActivity" />
         <activity android:name=".Activities.PhNoActivity" />
@@ -35,13 +40,17 @@
         <activity android:name=".Activities.StartPageActivity" />
         <activity android:name=".Activities.SavedPostsActivity" />
         <activity android:name=".Activities.EditProfileActivity" />
+        <activity android:name=".Activities.PostDetailActivity" />
         <activity android:name=".Activities.UsersProfileActivity" />
+
         <activity
             android:name="com.theartofdev.edmodo.cropper.CropImageActivity"
             android:theme="@style/Base.Theme.AppCompat" />
+
         <activity
             android:name=".Activities.NewPostActivity"
             android:windowSoftInputMode="stateHidden" />
+
         <activity
             android:name=".Activities.CommentsActivity"
             android:windowSoftInputMode="adjustResize|stateHidden" />
@@ -55,12 +64,13 @@
             android:authorities="com.blogspot.yashas003.chitter.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
+
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepaths" />
+
         </provider>
 
-        <activity android:name=".Activities.PostDetailsActivity"></activity>
     </application>
 
 </manifest>

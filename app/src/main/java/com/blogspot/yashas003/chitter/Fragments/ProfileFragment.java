@@ -62,6 +62,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.NetworkPolicy;
@@ -72,7 +73,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
@@ -91,9 +91,9 @@ public class ProfileFragment extends Fragment {
     StaggeredGridLayoutManager staggeredGridLayoutManager;
     FloatingActionButton savedPosts;
     CollapsingToolbarLayout ctl;
+    ConstraintLayout buttonContainer;
     ConstraintLayout downloadImage;
     ConstraintLayout shareImage;
-    ConstraintLayout likeImage;
     RecyclerView recyclerView;
     CircleImageView userImage;
     ImageView saveImage;
@@ -211,6 +211,12 @@ public class ProfileFragment extends Fragment {
             }
         });
 
+        gridViewAdapter = new GridViewAdapter(mImageUrls);
+        staggeredGridLayoutManager = new StaggeredGridLayoutManager(NUM_COLUMNS, StaggeredGridLayoutManager.VERTICAL);
+        recyclerView.setLayoutManager(staggeredGridLayoutManager);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setAdapter(gridViewAdapter);
+
         return view;
     }
 
@@ -228,10 +234,6 @@ public class ProfileFragment extends Fragment {
 
                     if (task.getResult().exists()) {
 
-                        gridViewAdapter = new GridViewAdapter(mImageUrls);
-                        staggeredGridLayoutManager = new StaggeredGridLayoutManager(NUM_COLUMNS, StaggeredGridLayoutManager.VERTICAL);
-                        recyclerView.setLayoutManager(staggeredGridLayoutManager);
-                        recyclerView.setAdapter(gridViewAdapter);
                         getPosts();
                         getFollowing();
                         getFollowers();
@@ -346,7 +348,6 @@ public class ProfileFragment extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 followers.setText("" + dataSnapshot.getChildrenCount());
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
             }
@@ -355,7 +356,8 @@ public class ProfileFragment extends Fragment {
 
     private void getPosts() {
 
-        firebaseFirestore.collection("Posts").addSnapshotListener(new EventListener<QuerySnapshot>() {
+        firebaseFirestore.collection("Posts").orderBy("time", Query.Direction.DESCENDING)
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
 
@@ -377,9 +379,8 @@ public class ProfileFragment extends Fragment {
                             } else {
                                 noPosts.setVisibility(View.VISIBLE);
                             }
+                            gridViewAdapter.notifyDataSetChanged();
                         }
-                        Collections.reverse(mImageUrls);
-                        gridViewAdapter.notifyDataSetChanged();
                     }
                 }
             }
@@ -394,16 +395,11 @@ public class ProfileFragment extends Fragment {
         saveImageDialog.setContentView(R.layout.save_image);
         saveImageDialog.show();
 
+        buttonContainer = saveImageDialog.findViewById(R.id.button_container);
+        buttonContainer.setVisibility(View.VISIBLE);
+
         saveImage = saveImageDialog.findViewById(R.id.save_image);
         Picasso.get().load(image).networkPolicy(NetworkPolicy.OFFLINE).placeholder(R.mipmap.placeholder).into(saveImage);
-
-        likeImage = saveImageDialog.findViewById(R.id.like);
-        likeImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Toast.makeText(getActivity(), "Yet to implement this feature.", Toast.LENGTH_SHORT).show();
-            }
-        });
 
         shareImage = saveImageDialog.findViewById(R.id.share);
         shareImage.setOnClickListener(new View.OnClickListener() {
@@ -432,7 +428,7 @@ public class ProfileFragment extends Fragment {
                     shareIntent.setDataAndType(contentUri, getActivity().getContentResolver().getType(contentUri));
                     shareIntent.putExtra(Intent.EXTRA_STREAM, contentUri);
                     shareIntent.setType("image/*");
-                    startActivity(Intent.createChooser(shareIntent, "Share Using"));
+                    startActivity(Intent.createChooser(shareIntent, "Share using"));
                 }
             }
         });

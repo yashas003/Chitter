@@ -20,7 +20,7 @@
             android:layout_height="50dp"
             android:layout_marginTop="24dp"
             android:elevation="0dp"
-            app:title="Likes"
+            app:title="Notifications"
             app:titleTextColor="@color/colorWhite" />
 
     </android.support.design.widget.AppBarLayout>
@@ -32,7 +32,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginBottom="8dp"
-        android:text="Likes"
+        android:text="Notifications"
         android:textSize="30sp"
         android:textStyle="bold"
         app:layout_constraintBottom_toBottomOf="parent"

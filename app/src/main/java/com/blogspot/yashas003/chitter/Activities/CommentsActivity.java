@@ -132,7 +132,6 @@ public class CommentsActivity extends AppCompatActivity {
                 Collections.reverse(commentsList);
                 commentAdapter.notifyDataSetChanged();
             }
-
             @Override
             public void onCancelled(DatabaseError databaseError) {
             }

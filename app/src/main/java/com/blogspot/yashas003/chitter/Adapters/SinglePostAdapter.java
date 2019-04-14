@@ -1,6 +1,7 @@
 package com.blogspot.yashas003.chitter.Adapters;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.ClipData;
 import android.content.ClipboardManager;
@@ -50,34 +51,39 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 import static android.support.constraint.Constraints.TAG;
 
-public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
+public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.ViewHolder> {
+
     private DatabaseReference databaseReference;
+    private FirebaseDatabase firebaseDatabase;
     private FirebaseFirestore firestore;
     private FirebaseUser firebaseUser;
 
+    private Context mContext;
     private List<Posts> post_list;
 
-    public PostAdapter(List<Posts> post_list) {
+    public SinglePostAdapter(Context mContext, List<Posts> post_list) {
+        this.mContext = mContext;
         this.post_list = post_list;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.post_item, viewGroup, false);
-        firestore = FirebaseFirestore.getInstance();
+        View view = LayoutInflater.from(mContext).inflate(R.layout.post_item, viewGroup, false);
+        firebaseDatabase = FirebaseDatabase.getInstance();
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        firestore = FirebaseFirestore.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
         return new ViewHolder(view);
     }
 
-
     @SuppressLint("ClickableViewAccessibility")
     @Override
-    public void onBindViewHolder(@NonNull final ViewHolder viewHolder, @SuppressLint("RecyclerView") final int i) {
+    public void onBindViewHolder(@NonNull final ViewHolder viewHolder, int i) {
 
         final Posts posts = post_list.get(i);
 
@@ -227,11 +233,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         //getting comments==========================================================================
         getComments(posts.getPost_id(), viewHolder.comment);
 
-        //Post menu
+        //Post menu=================================================================================
         viewHolder.postManage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                showMore(posts.getUser_id(), posts.getImage_url(), v);
+                showMore(posts.getUser_id(), posts.getPost_id(), posts.getImage_url(), v);
             }
         });
     }
@@ -241,24 +247,61 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         return post_list.size();
     }
 
-    private void showMore(String user_id, final String image_url, View v) {
+    private boolean isOnline(View view) {
+        ConnectivityManager cm = (ConnectivityManager) view.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
+    }
 
-        final Dialog postManage = new Dialog(v.getContext());
-        postManage.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
-        postManage.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        postManage.setContentView(R.layout.post_manage_dialog);
-        postManage.show();
+    private void showMore(String user_id, final String post_id, final String image_url, View v) {
 
-        TextView deletePostBtn = postManage.findViewById(R.id.ic_delete_post);
-        TextView reportPostBtn = postManage.findViewById(R.id.ic_report_post);
-        TextView copyLinkBtn = postManage.findViewById(R.id.ic_copy_link);
+        final Dialog singlePostManage = new Dialog(v.getContext());
+        singlePostManage.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+        singlePostManage.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        singlePostManage.setContentView(R.layout.post_manage_dialog);
+        singlePostManage.show();
 
-        deletePostBtn.setVisibility(View.GONE);
+        TextView deletePost = singlePostManage.findViewById(R.id.ic_delete_post);
+        TextView reportPost = singlePostManage.findViewById(R.id.ic_report_post);
+        TextView copyLink = singlePostManage.findViewById(R.id.ic_copy_link);
 
-        copyLinkBtn.setOnClickListener(new View.OnClickListener() {
+        if (user_id.equals(firebaseUser.getUid())) {
+            reportPost.setVisibility(View.GONE);
+        } else {
+            deletePost.setVisibility(View.GONE);
+        }
+
+        deletePost.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+
+                singlePostManage.dismiss();
+                firestore.collection("Posts").document(post_id).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+
+                        if (task.isSuccessful()) {
+
+                            notifyDataSetChanged();
+                            ((Activity) mContext).finish();
+
+                            firebaseDatabase.getReference().child("Saves").child(firebaseUser.getUid()).child(post_id).removeValue();
+                            firebaseDatabase.getReference("Comments").child(post_id).removeValue();
+                            firebaseDatabase.getReference().child("Likes").child(post_id).removeValue();
+                            Toast.makeText(v.getContext(), "Post deleted :(", Toast.LENGTH_SHORT).show();
+                        } else {
+                            String e = Objects.requireNonNull(task.getException()).getMessage();
+                            Toast.makeText(v.getContext(), "Error: " + e, Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }
+        });
+
+        copyLink.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                postManage.dismiss();
+                singlePostManage.dismiss();
 
                 ClipboardManager clipboard = (ClipboardManager) v.getContext().getSystemService(Context.CLIPBOARD_SERVICE);
                 ClipData clip = ClipData.newPlainText(null, image_url);
@@ -266,19 +309,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                 Toast.makeText(v.getContext(), "Link copied to the clip board :)", Toast.LENGTH_SHORT).show();
             }
         });
-
-        if (!user_id.equals(firebaseUser.getUid())) {
-
-            reportPostBtn.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    postManage.dismiss();
-                    Toast.makeText(v.getContext(), "Post has been reported !", Toast.LENGTH_SHORT).show();
-                }
-            });
-        } else {
-            reportPostBtn.setVisibility(View.GONE);
-        }
     }
 
     private void doubleTapToLike(View likeBtn, String post_id) {
@@ -383,12 +413,6 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
     }
 
-    private boolean isOnline(View view) {
-        ConnectivityManager cm = (ConnectivityManager) view.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnectedOrConnecting();
-    }
-
     private void isSaved(final String postId, final ImageView saveBtn) {
 
         databaseReference = FirebaseDatabase.getInstance().getReference()
@@ -470,4 +494,3 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
     }
 }
-
