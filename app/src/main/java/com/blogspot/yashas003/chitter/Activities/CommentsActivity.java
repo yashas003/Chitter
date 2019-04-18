@@ -113,6 +113,10 @@ public class CommentsActivity extends AppCompatActivity {
         hashMap.put("owner", firebaseUser.getUid());
 
         reference.push().setValue(hashMap);
+
+        if (!firebaseUser.getUid().equals(ownerId)) {
+            addNotification();
+        }
         commentText.setText("");
     }
 
@@ -132,9 +136,23 @@ public class CommentsActivity extends AppCompatActivity {
                 Collections.reverse(commentsList);
                 commentAdapter.notifyDataSetChanged();
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+    }
+
+    private void addNotification() {
+
+        reference = FirebaseDatabase.getInstance().getReference("Notifications").child(ownerId).child("comment" + postId);
+
+        HashMap<String, Object> notifyMap = new HashMap<>();
+        notifyMap.put("user_id", firebaseUser.getUid());
+        notifyMap.put("text", "commented: " + commentText.getText().toString());
+        notifyMap.put("post_id", postId);
+        notifyMap.put("is_post", true);
+
+        reference.push().setValue(notifyMap);
     }
 }

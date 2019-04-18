@@ -25,6 +25,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.squareup.picasso.Picasso;
 
+import java.util.HashMap;
 import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
@@ -32,6 +33,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
 
     private List<Users> users_list;
+    private DatabaseReference databaseReference;
     private FirebaseUser firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
 
     public UserAdapter(List<Users> users_list) {
@@ -77,6 +79,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
                                 .child("Follow").child(users.getUser_id())
                                 .child("followers").child(firebaseUser.getUid())
                                 .setValue(true);
+
+                        addNotification(users.getUser_id());
                     } else {
 
                         FirebaseDatabase.getInstance().getReference()
@@ -88,6 +92,8 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
                                 .child("Follow").child(users.getUser_id())
                                 .child("followers").child(firebaseUser.getUid())
                                 .removeValue();
+
+                        removeNotification(users.getUser_id());
                     }
                 } else {
                     Toast.makeText(v.getContext(), "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
@@ -116,23 +122,10 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
         return users_list.size();
     }
 
-    class viewHolder extends RecyclerView.ViewHolder {
-
-        CircleImageView userImage;
-        TextView userName;
-        TextView uniqueName;
-        CardView followBtn;
-        TextView followBtnText;
-
-        viewHolder(@NonNull View itemView) {
-            super(itemView);
-
-            userImage = itemView.findViewById(R.id.profile_image);
-            userName = itemView.findViewById(R.id.user_name);
-            uniqueName = itemView.findViewById(R.id.unique_name);
-            followBtn = itemView.findViewById(R.id.btn_follow);
-            followBtnText = itemView.findViewById(R.id.btn_follow_text);
-        }
+    private boolean isOnline(View view) {
+        ConnectivityManager cm = (ConnectivityManager) view.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = cm.getActiveNetworkInfo();
+        return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
     private void isFollowing(final String userID, final String firebaseUser, final TextView btnText, final CardView btn) {
@@ -166,9 +159,43 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
         });
     }
 
-    private boolean isOnline(View view) {
-        ConnectivityManager cm = (ConnectivityManager) view.getContext().getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnectedOrConnecting();
+    private void addNotification(String user_id) {
+
+        if (!firebaseUser.getUid().equals(user_id)) {
+            databaseReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(firebaseUser.getUid());
+
+            HashMap<String, Object> notifyMap = new HashMap<>();
+            notifyMap.put("user_id", firebaseUser.getUid());
+            notifyMap.put("text", "Started following you.");
+            notifyMap.put("post_id", "");
+            notifyMap.put("is_post", false);
+
+            databaseReference.setValue(notifyMap);
+        }
+    }
+
+    private void removeNotification(String user_id) {
+
+        databaseReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(firebaseUser.getUid());
+        databaseReference.removeValue();
+    }
+
+    class viewHolder extends RecyclerView.ViewHolder {
+
+        CircleImageView userImage;
+        TextView userName;
+        TextView uniqueName;
+        CardView followBtn;
+        TextView followBtnText;
+
+        viewHolder(@NonNull View itemView) {
+            super(itemView);
+
+            userImage = itemView.findViewById(R.id.profile_image);
+            userName = itemView.findViewById(R.id.user_name);
+            uniqueName = itemView.findViewById(R.id.unique_name);
+            followBtn = itemView.findViewById(R.id.btn_follow);
+            followBtnText = itemView.findViewById(R.id.btn_follow_text);
+        }
     }
 }

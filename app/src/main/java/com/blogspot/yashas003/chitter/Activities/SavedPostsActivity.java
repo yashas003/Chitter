@@ -10,7 +10,6 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.blogspot.yashas003.chitter.Adapters.GridViewAdapter;
@@ -43,7 +42,6 @@ public class SavedPostsActivity extends AppCompatActivity {
     RecyclerView savedListView;
     List<String> savedPostList;
     TextView noSavedPosts;
-    ProgressBar spinner;
     Toolbar toolbar;
     String user_id;
 
@@ -77,7 +75,6 @@ public class SavedPostsActivity extends AppCompatActivity {
             }
         });
 
-        spinner = findViewById(R.id.loading_spinner);
         noSavedPosts = findViewById(R.id.no_saved_posts);
 
         firestoreSettings = new FirebaseFirestoreSettings.Builder().setPersistenceEnabled(true).build();
@@ -126,18 +123,18 @@ public class SavedPostsActivity extends AppCompatActivity {
                     Log.e(TAG, "onEvent: ", e);
                 } else {
                     savedPost.clear();
-                    for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
 
+                    for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
                         Posts posts = doc.getDocument().toObject(Posts.class);
 
                         for (String postIdList : savedPostList) {
                             if (posts.getPost_id().equals(postIdList)) {
+
                                 savedPost.add(posts);
                                 savedListView.setVisibility(View.VISIBLE);
                             }
                         }
                         Collections.reverse(savedPost);
-                        spinner.setVisibility(View.GONE);
                         gridViewAdapter.notifyDataSetChanged();
                     }
                 }

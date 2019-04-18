@@ -73,6 +73,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -83,9 +84,11 @@ import static android.support.constraint.Constraints.TAG;
 public class UsersProfileActivity extends AppCompatActivity {
 
     StaggeredGridLayoutManager staggeredGridLayoutManager;
+    ConstraintLayout followUserToSeePosts;
     ConstraintLayout downloadProfileImage;
     ConstraintLayout shareProfileImage;
     ConstraintLayout buttonContainer;
+    ConstraintLayout noPosts;
     GridViewAdapter gridViewAdapter;
     ProgressBar progressBar;
     CollapsingToolbarLayout collapseBar;
@@ -94,7 +97,6 @@ public class UsersProfileActivity extends AppCompatActivity {
     TextView displayProfileName;
     TextView userProfileBio;
     TextView followBtnText;
-    TextView noPosts;
     TextView users_following;
     TextView users_followers;
     TextView users_postCount;
@@ -145,19 +147,18 @@ public class UsersProfileActivity extends AppCompatActivity {
         collapseBar.setExpandedTitleColor(getResources().getColor(android.R.color.transparent));
         collapseBar.setCollapsedTitleTextAppearance(R.style.CollapsedAppBar);
 
+        noPosts = findViewById(R.id.users_no_post);
         users_following = findViewById(R.id.users_following);
         users_followers = findViewById(R.id.users_followers);
-        noPosts = findViewById(R.id.users_no_posts);
         backgroundPic = findViewById(R.id.users_back_picture);
         displayProfileName = findViewById(R.id.users_userName);
         userProfileBio = findViewById(R.id.users_uniqueName);
         followBtnText = findViewById(R.id.users_followBtnText);
         postsRecyclerView = findViewById(R.id.users_posts_recyclerView);
+        followUserToSeePosts = findViewById(R.id.follow_user_to_see_post);
 
         users_postCount = findViewById(R.id.users_userPosts);
         users_postCount.setText("0");
-
-        isFollowing(user_id, followBtnText);
 
         followBtn = findViewById(R.id.users_followBtn);
         followBtn.setOnClickListener(new View.OnClickListener() {
@@ -237,20 +238,27 @@ public class UsersProfileActivity extends AppCompatActivity {
         users_followers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent followersIntent = new Intent(UsersProfileActivity.this, FollowersActivity.class);
-                followersIntent.putExtra("id", user_id);
-                followersIntent.putExtra("title", "followers");
-                startActivity(followersIntent);
+
+                String followersCount = users_followers.getText().toString();
+                if (!followersCount.equals("0")) {
+                    Intent followersIntent = new Intent(UsersProfileActivity.this, FollowersActivity.class);
+                    followersIntent.putExtra("id", user_id);
+                    followersIntent.putExtra("title", "followers");
+                    startActivity(followersIntent);
+                }
             }
         });
 
         users_following.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent followersIntent = new Intent(UsersProfileActivity.this, FollowersActivity.class);
-                followersIntent.putExtra("id", user_id);
-                followersIntent.putExtra("title", "following");
-                startActivity(followersIntent);
+                String followingCount = users_following.getText().toString();
+                if (!followingCount.equals("0")) {
+                    Intent followersIntent = new Intent(UsersProfileActivity.this, FollowersActivity.class);
+                    followersIntent.putExtra("id", user_id);
+                    followersIntent.putExtra("title", "following");
+                    startActivity(followersIntent);
+                }
             }
         });
 
@@ -274,9 +282,10 @@ public class UsersProfileActivity extends AppCompatActivity {
 
                     if (task.getResult().exists()) {
 
-                        getPosts();
                         getFollowing();
                         getFollowers();
+                        getPostsCount();
+                        isFollowing(user_id, followBtnText);
 
                         appBarLayout.setVisibility(View.VISIBLE);
                         progressBar.setVisibility(View.GONE);
@@ -409,7 +418,6 @@ public class UsersProfileActivity extends AppCompatActivity {
                     @Override
                     public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
 
-                        int postCount = 0;
                         if (e != null) {
                             Log.e(TAG, "onEvent: ", e);
                         } else {
@@ -420,15 +428,45 @@ public class UsersProfileActivity extends AppCompatActivity {
                                     Posts posts = doc.getDocument().toObject(Posts.class);
 
                                     if (posts.getUser_id().equals(user_id)) {
-                                        postCount++;
-                                        users_postCount.setText("" + postCount);
+
                                         mImageUrls.add(posts);
+                                        noPosts.setVisibility(View.GONE);
                                         postsRecyclerView.setVisibility(View.VISIBLE);
-                                    } else {
-                                        noPosts.setVisibility(View.VISIBLE);
                                     }
                                 }
                                 gridViewAdapter.notifyDataSetChanged();
+                            }
+                            if (mImageUrls.isEmpty()) {
+                                noPosts.setVisibility(View.VISIBLE);
+                            }
+                        }
+                    }
+                });
+    }
+
+    private void getPostsCount() {
+
+        mFirestore.collection("Posts").orderBy("time", Query.Direction.DESCENDING)
+                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+                    @Override
+                    public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+
+                        int postCount = 0;
+                        users_postCount.setText("0");
+                        if (e != null) {
+
+                            Log.e(TAG, "onEvent: ", e);
+                        } else {
+                            for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
+
+                                if (doc.getType() == DocumentChange.Type.ADDED) {
+                                    Posts posts = doc.getDocument().toObject(Posts.class);
+
+                                    if (posts.getUser_id().equals(user_id)) {
+                                        postCount++;
+                                        users_postCount.setText("" + postCount);
+                                    }
+                                }
                             }
                         }
                     }
@@ -668,12 +706,21 @@ public class UsersProfileActivity extends AppCompatActivity {
                 if (!firebaseUser.getUid().equals(userID)) {
 
                     if (dataSnapshot.child(userID).exists()) {
+                        getPosts();
+                        addNotification();
                         btnText.setText("Following");
+                        postsRecyclerView.setAlpha(1);
+                        followUserToSeePosts.setVisibility(View.GONE);
                     } else {
                         btnText.setText("Follow");
+                        removeNotification();
+                        noPosts.setVisibility(View.GONE);
+                        postsRecyclerView.setAlpha(0);
+                        followUserToSeePosts.setVisibility(View.VISIBLE);
                     }
                 } else {
                     btnText.setText("EDIT");
+                    getPosts();
                 }
             }
 
@@ -681,5 +728,26 @@ public class UsersProfileActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+    }
+
+    private void addNotification() {
+
+        if (!firebaseUser.getUid().equals(user_id)) {
+            mReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(firebaseUser.getUid());
+
+            HashMap<String, Object> notifyMap = new HashMap<>();
+            notifyMap.put("user_id", firebaseUser.getUid());
+            notifyMap.put("text", "Started following you.");
+            notifyMap.put("post_id", "");
+            notifyMap.put("is_post", false);
+
+            mReference.setValue(notifyMap);
+        }
+    }
+
+    private void removeNotification() {
+
+        mReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(firebaseUser.getUid());
+        mReference.removeValue();
     }
 }

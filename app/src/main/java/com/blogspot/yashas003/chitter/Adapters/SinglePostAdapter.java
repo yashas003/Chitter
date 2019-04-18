@@ -50,6 +50,7 @@ import com.varunest.sparkbutton.SparkButton;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -151,7 +152,7 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
             private GestureDetector gestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
                 @Override
                 public boolean onDoubleTap(MotionEvent e) {
-                    doubleTapToLike(viewHolder.likeBtn, posts.getPost_id());
+                    doubleTapToLike(viewHolder.likeBtn, posts.getPost_id(), posts.getUser_id());
 
                     //Double Tap animation============================================================
                     showLikeAnimation(viewHolder.showLike);
@@ -170,7 +171,7 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
         viewHolder.likeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                likeThePost(viewHolder.likeBtn, posts.getPost_id());
+                likeThePost(viewHolder.likeBtn, posts.getPost_id(), posts.getUser_id());
             }
         });
 
@@ -311,10 +312,13 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
         });
     }
 
-    private void doubleTapToLike(View likeBtn, String post_id) {
+    private void doubleTapToLike(View likeBtn, String post_id, String user_id) {
 
         if (isOnline(likeBtn)) {
-            FirebaseDatabase.getInstance().getReference().child("Likes").child(post_id).child(firebaseUser.getUid()).setValue(true);
+            if (likeBtn.getTag().equals("like")) {
+                addNotification(user_id, post_id);
+                FirebaseDatabase.getInstance().getReference().child("Likes").child(post_id).child(firebaseUser.getUid()).setValue(true);
+            }
         } else {
             Toast.makeText(likeBtn.getContext(), "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
         }
@@ -399,13 +403,17 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
         });
     }
 
-    private void likeThePost(View likeBtn, String post_id) {
+    private void likeThePost(View likeBtn, String post_id, String user_id) {
 
         if (isOnline(likeBtn)) {
 
             if (likeBtn.getTag().equals("like")) {
+
+                addNotification(user_id, post_id);
                 FirebaseDatabase.getInstance().getReference().child("Likes").child(post_id).child(firebaseUser.getUid()).setValue(true);
             } else {
+
+                removeNotification(user_id, post_id);
                 FirebaseDatabase.getInstance().getReference().child("Likes").child(post_id).child(firebaseUser.getUid()).removeValue();
             }
         } else {
@@ -455,6 +463,27 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+    }
+
+    private void addNotification(String user_id, String post_id) {
+
+        if (!firebaseUser.getUid().equals(user_id)) {
+            databaseReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(post_id);
+
+            HashMap<String, Object> notifyMap = new HashMap<>();
+            notifyMap.put("user_id", firebaseUser.getUid());
+            notifyMap.put("text", "liked your post.");
+            notifyMap.put("post_id", post_id);
+            notifyMap.put("is_post", true);
+
+            databaseReference.setValue(notifyMap);
+        }
+    }
+
+    private void removeNotification(String user_id, String post_id) {
+
+        databaseReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(post_id);
+        databaseReference.removeValue();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {

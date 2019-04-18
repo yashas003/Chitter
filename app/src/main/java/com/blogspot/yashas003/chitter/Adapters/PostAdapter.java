@@ -27,6 +27,7 @@ import android.widget.Toast;
 
 import com.blogspot.yashas003.chitter.Activities.CommentsActivity;
 import com.blogspot.yashas003.chitter.Activities.FollowersActivity;
+import com.blogspot.yashas003.chitter.Activities.UsersProfileActivity;
 import com.blogspot.yashas003.chitter.BuildConfig;
 import com.blogspot.yashas003.chitter.Model.Posts;
 import com.blogspot.yashas003.chitter.R;
@@ -49,6 +50,7 @@ import com.varunest.sparkbutton.SparkButton;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 
 import static android.support.constraint.Constraints.TAG;
@@ -68,18 +70,32 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.post_item, viewGroup, false);
-        firestore = FirebaseFirestore.getInstance();
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        firestore = FirebaseFirestore.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
         return new ViewHolder(view);
     }
-
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder viewHolder, @SuppressLint("RecyclerView") final int i) {
 
         final Posts posts = post_list.get(i);
+
+        //VisitPostOwner============================================================================
+        viewHolder.postOwner.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                visitOwnerProfile(v, posts.getUser_id());
+            }
+        });
+
+        viewHolder.postUserImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                visitOwnerProfile(v, posts.getUser_id());
+            }
+        });
 
         //Setting posts description=================================================================
         String description = posts.getDesc();
@@ -91,18 +107,16 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
 
         //Setting posts Picture=====================================================================
-        Picasso.get().load(posts.getThumb()).placeholder(R.mipmap.postback)
-                .into(viewHolder.postImage, new Callback() {
-                    @Override
-                    public void onSuccess() {
-                        Picasso.get().load(posts.getImage_url()).placeholder(viewHolder.postImage.getDrawable())
-                                .into(viewHolder.postImage);
-                    }
+        Picasso.get().load(posts.getThumb()).placeholder(R.mipmap.postback).into(viewHolder.postImage, new Callback() {
+            @Override
+            public void onSuccess() {
+                Picasso.get().load(posts.getImage_url()).placeholder(viewHolder.postImage.getDrawable()).into(viewHolder.postImage);
+            }
 
-                    @Override
-                    public void onError(Exception e) {
-                    }
-                });
+            @Override
+            public void onError(Exception e) {
+            }
+        });
 
         //Setting posts owner details===============================================================
         firestore.collection("Users").document(posts.getUser_id()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
@@ -145,7 +159,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             private GestureDetector gestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
                 @Override
                 public boolean onDoubleTap(MotionEvent e) {
-                    doubleTapToLike(viewHolder.likeBtn, posts.getPost_id());
+                    doubleTapToLike(viewHolder.likeBtn, posts.getPost_id(), posts.getUser_id());
 
                     //Double Tap animation============================================================
                     showLikeAnimation(viewHolder.showLike);
@@ -164,7 +178,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         viewHolder.likeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                likeThePost(viewHolder.likeBtn, posts.getPost_id());
+                likeThePost(viewHolder.likeBtn, posts.getPost_id(), posts.getUser_id());
             }
         });
 
@@ -281,10 +295,14 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
     }
 
-    private void doubleTapToLike(View likeBtn, String post_id) {
+    private void doubleTapToLike(View likeBtn, String post_id, String user_id) {
 
         if (isOnline(likeBtn)) {
-            FirebaseDatabase.getInstance().getReference().child("Likes").child(post_id).child(firebaseUser.getUid()).setValue(true);
+
+            if (likeBtn.getTag().equals("like")) {
+                addNotification(user_id, post_id);
+                FirebaseDatabase.getInstance().getReference().child("Likes").child(post_id).child(firebaseUser.getUid()).setValue(true);
+            }
         } else {
             Toast.makeText(likeBtn.getContext(), "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
         }
@@ -369,13 +387,17 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         });
     }
 
-    private void likeThePost(View likeBtn, String post_id) {
+    private void likeThePost(View likeBtn, String post_id, String user_id) {
 
         if (isOnline(likeBtn)) {
 
             if (likeBtn.getTag().equals("like")) {
+
+                addNotification(user_id, post_id);
                 FirebaseDatabase.getInstance().getReference().child("Likes").child(post_id).child(firebaseUser.getUid()).setValue(true);
             } else {
+
+                removeNotification(user_id, post_id);
                 FirebaseDatabase.getInstance().getReference().child("Likes").child(post_id).child(firebaseUser.getUid()).removeValue();
             }
         } else {
@@ -431,6 +453,34 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+    }
+
+    private void visitOwnerProfile(View v, String user_id) {
+
+        Intent userIntent = new Intent(v.getContext(), UsersProfileActivity.class);
+        userIntent.putExtra("user_id", user_id);
+        v.getContext().startActivity(userIntent);
+    }
+
+    private void addNotification(String user_id, String post_id) {
+
+        if (!firebaseUser.getUid().equals(user_id)) {
+            databaseReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(post_id);
+
+            HashMap<String, Object> notifyMap = new HashMap<>();
+            notifyMap.put("user_id", firebaseUser.getUid());
+            notifyMap.put("text", "liked your post.");
+            notifyMap.put("post_id", post_id);
+            notifyMap.put("is_post", true);
+
+            databaseReference.setValue(notifyMap);
+        }
+    }
+
+    private void removeNotification(String user_id, String post_id) {
+
+        databaseReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(post_id);
+        databaseReference.removeValue();
     }
 
     class ViewHolder extends RecyclerView.ViewHolder {

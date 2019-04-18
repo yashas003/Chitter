@@ -3,6 +3,7 @@ package com.blogspot.yashas003.chitter.Fragments;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
@@ -45,10 +46,12 @@ public class HomeFragment extends Fragment {
     Menu menu;
 
     LinearLayoutManager layoutManager;
-    ProgressBar loader;
     List<String> following_list;
     RecyclerView postListView;
+    ConstraintLayout welcome;
     PostAdapter postAdapter;
+    ProgressBar loader;
+
     List<Posts> post_list;
     String mUser;
     Toolbar toolbar;
@@ -76,6 +79,7 @@ public class HomeFragment extends Fragment {
         toolbar.setTitleTextAppearance(getActivity(), R.style.ToolBarFont);
         activity.setSupportActionBar(toolbar);
 
+        welcome = view.findViewById(R.id.welcome);
         loader = view.findViewById(R.id.home_progress);
 
         firestoreSettings = new FirebaseFirestoreSettings.Builder().setPersistenceEnabled(true).build();
@@ -112,6 +116,7 @@ public class HomeFragment extends Fragment {
                 }
                 readPosts();
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
             }
@@ -136,19 +141,23 @@ public class HomeFragment extends Fragment {
 
                             Posts posts = doc.getDocument().toObject(Posts.class);
 
-                            if (posts.getUser_id().equals(mUser)) {
-                                post_list.add(posts);
-                                loader.setVisibility(View.GONE);
-                            }
                             for (String id : following_list) {
                                 if (posts.getUser_id().equals(id)) {
                                     post_list.add(posts);
                                     loader.setVisibility(View.GONE);
                                 }
                             }
+                            if (posts.getUser_id().equals(mUser)) {
+                                post_list.add(posts);
+                                loader.setVisibility(View.GONE);
+                            }
                             postListView.setVisibility(View.VISIBLE);
                             postAdapter.notifyDataSetChanged();
                         }
+                    }
+                    if (post_list.isEmpty()) {
+                        loader.setVisibility(View.GONE);
+                        welcome.setVisibility(View.VISIBLE);
                     }
                 }
             }

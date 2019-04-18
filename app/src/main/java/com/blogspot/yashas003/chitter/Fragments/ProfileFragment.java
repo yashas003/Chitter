@@ -43,6 +43,7 @@ import android.widget.Toast;
 
 import com.blogspot.yashas003.chitter.Activities.EditProfileActivity;
 import com.blogspot.yashas003.chitter.Activities.FollowersActivity;
+import com.blogspot.yashas003.chitter.Activities.NewPostActivity;
 import com.blogspot.yashas003.chitter.Activities.SavedPostsActivity;
 import com.blogspot.yashas003.chitter.Activities.SettingsActivity;
 import com.blogspot.yashas003.chitter.Adapters.GridViewAdapter;
@@ -94,17 +95,18 @@ public class ProfileFragment extends Fragment {
     ConstraintLayout buttonContainer;
     ConstraintLayout downloadImage;
     ConstraintLayout shareImage;
+    ConstraintLayout noPost;
     RecyclerView recyclerView;
     CircleImageView userImage;
     ImageView saveImage;
     ImageView backPic;
+    TextView firstPicture;
     TextView displayName;
-    TextView userBio;
-    TextView btnText;
-    TextView noPosts;
     TextView following;
     TextView followers;
     TextView postCount;
+    TextView userBio;
+    TextView btnText;
     ProgressBar spinner;
     CardView editBtn;
     AppBarLayout abl;
@@ -147,14 +149,14 @@ public class ProfileFragment extends Fragment {
         firebaseFirestore = FirebaseFirestore.getInstance();
         user_id = mAuth.getCurrentUser().getUid();
 
+        recyclerView = view.findViewById(R.id.posts_recyclerView);
         following = view.findViewById(R.id.user_following);
         followers = view.findViewById(R.id.user_followers);
         backPic = view.findViewById(R.id.back_picture);
         displayName = view.findViewById(R.id.user_name);
         userBio = view.findViewById(R.id.unique_name);
         btnText = view.findViewById(R.id.button_text);
-        recyclerView = view.findViewById(R.id.posts_recyclerView);
-        noPosts = view.findViewById(R.id.no_posts);
+        noPost = view.findViewById(R.id.no_post);
 
         postCount = view.findViewById(R.id.user_posts);
         postCount.setText("0");
@@ -170,6 +172,15 @@ public class ProfileFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 showProfileImage();
+            }
+        });
+
+        firstPicture = view.findViewById(R.id.first_picture);
+        firstPicture.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent addIntent = new Intent(getActivity(), NewPostActivity.class);
+                startActivity(addIntent);
             }
         });
 
@@ -194,20 +205,28 @@ public class ProfileFragment extends Fragment {
         followers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent followersIntent = new Intent(getActivity(), FollowersActivity.class);
-                followersIntent.putExtra("id", user_id);
-                followersIntent.putExtra("title", "followers");
-                startActivity(followersIntent);
+
+                String followersCount = followers.getText().toString();
+                if (!followersCount.equals("0")) {
+                    Intent followersIntent = new Intent(getActivity(), FollowersActivity.class);
+                    followersIntent.putExtra("id", user_id);
+                    followersIntent.putExtra("title", "followers");
+                    startActivity(followersIntent);
+                }
             }
         });
 
         following.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent followersIntent = new Intent(getActivity(), FollowersActivity.class);
-                followersIntent.putExtra("id", user_id);
-                followersIntent.putExtra("title", "following");
-                startActivity(followersIntent);
+
+                String followingCount = following.getText().toString();
+                if (!followingCount.equals("0")) {
+                    Intent followersIntent = new Intent(getActivity(), FollowersActivity.class);
+                    followersIntent.putExtra("id", user_id);
+                    followersIntent.putExtra("title", "following");
+                    startActivity(followersIntent);
+                }
             }
         });
 
@@ -266,48 +285,48 @@ public class ProfileFragment extends Fragment {
 
                         image = task.getResult().getString("user_image");
                         Picasso.get().load(image).placeholder(R.mipmap.placeholder).into(userImage, new Callback() {
+                            @Override
+                            public void onSuccess() {
+
+                                Bitmap bitmap = ((BitmapDrawable) userImage.getDrawable()).getBitmap();
+                                Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
                                     @Override
-                                    public void onSuccess() {
+                                    public void onGenerated(@Nullable Palette palette) {
 
-                                        Bitmap bitmap = ((BitmapDrawable) userImage.getDrawable()).getBitmap();
-                                        Palette.from(bitmap).generate(new Palette.PaletteAsyncListener() {
-                                            @Override
-                                            public void onGenerated(@Nullable Palette palette) {
+                                        if (palette != null) {
+                                            Palette.Swatch colorVibrant = palette.getVibrantSwatch();
+                                            Palette.Swatch colorDominant = palette.getDominantSwatch();
+                                            Palette.Swatch colorMuted = palette.getMutedSwatch();
 
-                                                if (palette != null) {
-                                                    Palette.Swatch colorVibrant = palette.getVibrantSwatch();
-                                                    Palette.Swatch colorDominant = palette.getDominantSwatch();
-                                                    Palette.Swatch colorMuted = palette.getMutedSwatch();
+                                            if (colorVibrant != null) {
 
-                                                    if (colorVibrant != null) {
+                                                ctl.setContentScrimColor(colorVibrant.getRgb());
+                                                editBtn.setCardBackgroundColor(colorVibrant.getRgb());
+                                                btnText.setTextColor(colorVibrant.getTitleTextColor());
+                                                ctl.setCollapsedTitleTextColor(colorVibrant.getTitleTextColor());
+                                            } else if (colorDominant != null) {
 
-                                                        ctl.setContentScrimColor(colorVibrant.getRgb());
-                                                        editBtn.setCardBackgroundColor(colorVibrant.getRgb());
-                                                        btnText.setTextColor(colorVibrant.getTitleTextColor());
-                                                        ctl.setCollapsedTitleTextColor(colorVibrant.getTitleTextColor());
-                                                    } else if (colorDominant != null) {
+                                                ctl.setContentScrimColor(colorDominant.getRgb());
+                                                editBtn.setCardBackgroundColor(colorDominant.getRgb());
+                                                btnText.setTextColor(colorDominant.getTitleTextColor());
+                                                ctl.setCollapsedTitleTextColor(colorDominant.getTitleTextColor());
+                                            } else if (colorMuted != null) {
 
-                                                        ctl.setContentScrimColor(colorDominant.getRgb());
-                                                        editBtn.setCardBackgroundColor(colorDominant.getRgb());
-                                                        btnText.setTextColor(colorDominant.getTitleTextColor());
-                                                        ctl.setCollapsedTitleTextColor(colorDominant.getTitleTextColor());
-                                                    } else if (colorMuted != null) {
-
-                                                        ctl.setContentScrimColor(colorMuted.getRgb());
-                                                        editBtn.setCardBackgroundColor(colorMuted.getRgb());
-                                                        btnText.setTextColor(colorMuted.getTitleTextColor());
-                                                        ctl.setCollapsedTitleTextColor(colorMuted.getTitleTextColor());
-                                                    }
-                                                }
+                                                ctl.setContentScrimColor(colorMuted.getRgb());
+                                                editBtn.setCardBackgroundColor(colorMuted.getRgb());
+                                                btnText.setTextColor(colorMuted.getTitleTextColor());
+                                                ctl.setCollapsedTitleTextColor(colorMuted.getTitleTextColor());
                                             }
-                                        });
-                                    }
-
-                                    @Override
-                                    public void onError(Exception e) {
-                                        userImage.setImageResource(R.mipmap.placeholder);
+                                        }
                                     }
                                 });
+                            }
+
+                            @Override
+                            public void onError(Exception e) {
+                                userImage.setImageResource(R.mipmap.placeholder);
+                            }
+                        });
                         Picasso.get().load(image).placeholder(R.mipmap.backpic).into(backPic);
                     } else {
                         abl.setVisibility(View.VISIBLE);
@@ -334,6 +353,7 @@ public class ProfileFragment extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 following.setText("" + dataSnapshot.getChildrenCount());
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
             }
@@ -348,6 +368,7 @@ public class ProfileFragment extends Fragment {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 followers.setText("" + dataSnapshot.getChildrenCount());
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
             }
@@ -358,33 +379,37 @@ public class ProfileFragment extends Fragment {
 
         firebaseFirestore.collection("Posts").orderBy("time", Query.Direction.DESCENDING)
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
+                    @Override
+                    public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
 
-                int postsCount = 0;
-                if (e != null) {
-                    Log.e(TAG, "onEvent: ", e);
-                } else {
-                    mImageUrls.clear();
-                    for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
+                        int postsCount = 0;
+                        postCount.setText("0");
+                        if (e != null) {
+                            Log.e(TAG, "onEvent: ", e);
+                        } else {
+                            mImageUrls.clear();
+                            for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
 
-                        if (doc.getType() == DocumentChange.Type.ADDED) {
-                            Posts posts = doc.getDocument().toObject(Posts.class);
+                                if (doc.getType() == DocumentChange.Type.ADDED) {
+                                    Posts posts = doc.getDocument().toObject(Posts.class);
 
-                            if (posts.getUser_id().equals(user_id)) {
-                                postsCount++;
-                                postCount.setText("" + postsCount);
-                                mImageUrls.add(posts);
-                                recyclerView.setVisibility(View.VISIBLE);
-                            } else {
-                                noPosts.setVisibility(View.VISIBLE);
+                                    if (posts.getUser_id().equals(user_id)) {
+
+                                        postsCount++;
+                                        postCount.setText("" + postsCount);
+                                        mImageUrls.add(posts);
+                                        noPost.setVisibility(View.GONE);
+                                        recyclerView.setVisibility(View.VISIBLE);
+                                    }
+                                }
+                                gridViewAdapter.notifyDataSetChanged();
                             }
-                            gridViewAdapter.notifyDataSetChanged();
+                            if (mImageUrls.isEmpty()) {
+                                noPost.setVisibility(View.VISIBLE);
+                            }
                         }
                     }
-                }
-            }
-        });
+                });
     }
 
     private void showProfileImage() {

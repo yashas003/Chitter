@@ -26,6 +26,7 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.storage.FirebaseStorage;
@@ -192,7 +193,8 @@ public class NewPostActivity extends AppCompatActivity {
                             public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
 
                                 String downloadThumbUri = taskSnapshot.getDownloadUrl().toString();
-                                String post_id = UUID.randomUUID().toString();
+                                DocumentReference docRef = firebaseFirestore.collection("Posts").document();
+                                String post_id = docRef.getId();
 
                                 Map<String, Object> postMap = new HashMap<>();
                                 postMap.put("image_url", downLoadUri);
@@ -202,7 +204,7 @@ public class NewPostActivity extends AppCompatActivity {
                                 postMap.put("post_id", post_id);
                                 postMap.put("time", FieldValue.serverTimestamp());
 
-                                firebaseFirestore.collection("Posts").document(post_id).set(postMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                docRef.set(postMap).addOnCompleteListener(new OnCompleteListener<Void>() {
                                     @Override
                                     public void onComplete(@NonNull Task<Void> task) {
 

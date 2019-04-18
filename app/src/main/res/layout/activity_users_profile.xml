@@ -30,22 +30,50 @@
                 android:indeterminateTint="@color/colorPrimary" />
 
             <android.support.constraint.ConstraintLayout
+                android:id="@+id/follow_user_to_see_post"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+
+                <TextView
+                    android:id="@+id/textView28"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="@font/galdeano"
+                    android:text="Follow this user to see their posts :)"
+                    android:textAlignment="center"
+                    android:textColor="#9e9e9e"
+                    android:textSize="16sp"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:ignore="HardcodedText" />
+
+            </android.support.constraint.ConstraintLayout>
+
+            <android.support.constraint.ConstraintLayout
                 android:id="@+id/users_no_post"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:visibility="gone"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
                 <TextView
                     android:id="@+id/users_no_posts"
-                    android:layout_width="0dp"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:fontFamily="@font/cousine"
-                    android:text="No Posts"
+                    android:layout_marginTop="32dp"
+                    android:layout_marginBottom="8dp"
+                    android:fontFamily="@font/galdeano"
+                    android:text="This user haven't shared any photos \nyet :("
                     android:textAlignment="center"
-                    android:textSize="18sp"
-                    android:textStyle="bold"
-                    android:visibility="gone"
+                    android:textColor="#9e9e9e"
+                    android:textSize="16sp"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
