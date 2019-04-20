@@ -153,6 +153,6 @@ public class CommentsActivity extends AppCompatActivity {
         notifyMap.put("post_id", postId);
         notifyMap.put("is_post", true);
 
-        reference.push().setValue(notifyMap);
+        reference.setValue(notifyMap);
     }
 }

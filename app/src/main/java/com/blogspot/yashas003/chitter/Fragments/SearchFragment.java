@@ -1,12 +1,16 @@
 package com.blogspot.yashas003.chitter.Fragments;
 
+import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -14,6 +18,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
 import com.blogspot.yashas003.chitter.Adapters.UserAdapter;
@@ -23,7 +29,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -35,16 +40,31 @@ public class SearchFragment extends Fragment {
     BottomNavigationView bottomNavigationView;
     Menu menu;
     MenuItem menuItem;
-
     EditText searchBar;
+    Toolbar toolbar;
 
     RecyclerView users_list_view;
     UserAdapter userAdapter;
 
     FirebaseFirestore firestore = FirebaseFirestore.getInstance();
-    FirebaseFirestoreSettings firestoreSettings;
     CollectionReference reference = firestore.collection("Users");
     Query query;
+
+    public static void showKeyboard(Context context) {
+        ((InputMethodManager) (context).getSystemService(Context.INPUT_METHOD_SERVICE)).toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY);
+    }
+
+    public static void hideKeyboard(Context context) {
+
+        try {
+            ((Activity) context).getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+            if ((((Activity) context).getCurrentFocus() != null) && (((Activity) context).getCurrentFocus().getWindowToken() != null)) {
+                ((InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(((Activity) context).getCurrentFocus().getWindowToken(), 0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     @Nullable
     @Override
@@ -59,15 +79,25 @@ public class SearchFragment extends Fragment {
         }
 
         searchBar = view.findViewById(R.id.search_bar);
+        searchBar.requestFocus();
 
-        firestoreSettings = new FirebaseFirestoreSettings.Builder().setPersistenceEnabled(true).build();
+        toolbar = view.findViewById(R.id.search_toolbar);
+        ((AppCompatActivity) getActivity()).setSupportActionBar(toolbar);
+
+        toolbar.setNavigationIcon(R.drawable.ic_close);
+        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                hideKeyboard(getActivity());
+                getActivity().getSupportFragmentManager().popBackStack();
+            }
+        });
 
         users_list_view = view.findViewById(R.id.recycler_view);
         users_list_view.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         // Show all users when fragment created
         query = firestore.collection("Users");
-        firestore.setFirestoreSettings(firestoreSettings);
         showAdapter(query);
 
         searchBar.addTextChangedListener(new TextWatcher() {
@@ -82,7 +112,6 @@ public class SearchFragment extends Fragment {
 
                     // Show all users when search bar character null
                     query = firestore.collection("Users");
-                    firestore.setFirestoreSettings(firestoreSettings);
                     showAdapter(query);
                 } else {
 
@@ -118,5 +147,17 @@ public class SearchFragment extends Fragment {
                 userAdapter.notifyDataSetChanged();
             }
         });
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        showKeyboard(getActivity());
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        hideKeyboard(getActivity());
     }
 }

@@ -28,7 +28,7 @@
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintVertical_bias="0.75">
+                app:layout_constraintVertical_bias="0.9">
 
                 <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/setup_image"
@@ -61,12 +61,12 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="48dp"
-                    android:layout_marginTop="40dp"
+                    android:layout_marginTop="32dp"
                     android:layout_marginEnd="48dp"
                     android:backgroundTint="@android:color/transparent"
                     android:ellipsize="end"
                     android:ems="10"
-                    android:fontFamily="@font/galdeano"
+                    android:fontFamily="@font/convergence"
                     android:hint="Display name"
                     android:importantForAutofill="no"
                     android:inputType="textPersonName"
@@ -79,7 +79,7 @@
                     android:textAlignment="center"
                     android:textColor="@color/colorGray"
                     android:textColorHint="@android:color/darker_gray"
-                    android:textSize="24sp"
+                    android:textSize="20sp"
                     app:layout_constraintBottom_toTopOf="@+id/user_name"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -96,12 +96,12 @@
                     android:layout_marginEnd="48dp"
                     android:backgroundTint="@android:color/transparent"
                     android:ems="10"
-                    android:fontFamily="@font/galdeano"
+                    android:fontFamily="@font/convergence"
                     android:hint="Username"
                     android:inputType="textNoSuggestions|textUri"
                     android:textAlignment="center"
                     android:textColor="@color/colorGray"
-                    android:textSize="24sp"
+                    android:textSize="20sp"
                     app:layout_constraintBottom_toTopOf="@+id/textView5"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
@@ -112,13 +112,15 @@
                     android:id="@+id/textView5"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:fontFamily="@font/galdeano"
-                    android:text='Consider selecting a unique username that should not contain any spaces. Example: "john_wick_123"'
+                    android:layout_marginStart="32dp"
+                    android:layout_marginEnd="32dp"
+                    android:fontFamily="@font/convergence"
+                    android:text='Select a unique username that should not contain any spaces. Ex: "john_wick_123"'
                     android:textAlignment="center"
                     android:textSize="12sp"
                     app:layout_constraintBottom_toTopOf="@+id/setup_btn"
-                    app:layout_constraintEnd_toEndOf="@+id/user_name"
-                    app:layout_constraintStart_toStartOf="@+id/user_name"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@+id/user_name"
                     tools:ignore="HardcodedText" />
 
@@ -143,7 +145,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:fontFamily="@font/artifika"
+                        android:fontFamily="@font/convergence"
                         android:paddingStart="48dp"
                         android:paddingLeft="48dp"
                         android:paddingTop="10dp"
@@ -153,7 +155,6 @@
                         android:text="Next"
                         android:textColor="@color/colorWhite"
                         android:textSize="18sp"
-                        android:textStyle="bold"
                         tools:ignore="HardcodedText" />
 
                 </android.support.v7.widget.CardView>

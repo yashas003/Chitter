@@ -49,11 +49,11 @@
 
         <activity
             android:name=".Activities.NewPostActivity"
-            android:windowSoftInputMode="stateHidden" />
+            android:windowSoftInputMode="adjustPan" />
 
         <activity
             android:name=".Activities.CommentsActivity"
-            android:windowSoftInputMode="adjustResize|stateHidden" />
+            android:windowSoftInputMode="adjustResize|stateAlwaysVisible" />
 
         <meta-data
             android:name="preloaded_fonts"

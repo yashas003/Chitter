@@ -12,10 +12,10 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.MenuItem;
 import android.view.View;
 
+import com.blogspot.yashas003.chitter.Fragments.AllPostsFragment;
 import com.blogspot.yashas003.chitter.Fragments.HomeFragment;
 import com.blogspot.yashas003.chitter.Fragments.NotificationFragment;
 import com.blogspot.yashas003.chitter.Fragments.ProfileFragment;
-import com.blogspot.yashas003.chitter.Fragments.SearchFragment;
 import com.blogspot.yashas003.chitter.R;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
                             break;
 
                         case R.id.ic_search:
-                            selectedFragment = new SearchFragment();
+                            selectedFragment = new AllPostsFragment();
                             break;
 
                         case R.id.ic_photo:

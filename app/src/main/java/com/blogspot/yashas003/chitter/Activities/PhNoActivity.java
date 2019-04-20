@@ -36,6 +36,9 @@ public class PhNoActivity extends AppCompatActivity {
         }
 
         toolbar = findViewById(R.id.phNoToolbar);
+        toolbar.setTitleTextAppearance(this, R.style.ToolBarFont);
+        setSupportActionBar(toolbar);
+
         toolbar.setNavigationIcon(R.drawable.ic_close);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override

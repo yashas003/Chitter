@@ -24,6 +24,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
 
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class OtpActivity extends AppCompatActivity {
@@ -76,6 +77,9 @@ public class OtpActivity extends AppCompatActivity {
         }
 
         toolbar = findViewById(R.id.otpToolbar);
+        toolbar.setTitleTextAppearance(this, R.style.ToolBarFont);
+        setSupportActionBar(toolbar);
+
         toolbar.setNavigationIcon(R.drawable.ic_close);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
@@ -137,7 +141,8 @@ public class OtpActivity extends AppCompatActivity {
                         Toast.makeText(OtpActivity.this, "Number linked to your profile :)", Toast.LENGTH_SHORT).show();
                     } else {
 
-                        Toast.makeText(OtpActivity.this, "verification failed!! Invalid Otp:(", Toast.LENGTH_SHORT).show();
+                        String error = Objects.requireNonNull(task.getException()).getMessage();
+                        Toast.makeText(OtpActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
                     }
                     loader.setVisibility(View.GONE);
                 }
@@ -154,7 +159,8 @@ public class OtpActivity extends AppCompatActivity {
                         Toast.makeText(OtpActivity.this, "Number verified and updated :)", Toast.LENGTH_SHORT).show();
                     } else {
 
-                        Toast.makeText(OtpActivity.this, "verification failed!! Invalid Otp:(", Toast.LENGTH_SHORT).show();
+                        String error = Objects.requireNonNull(task.getException()).getMessage();
+                        Toast.makeText(OtpActivity.this, "Error: " + error, Toast.LENGTH_SHORT).show();
                     }
                     loader.setVisibility(View.GONE);
                 }

@@ -54,8 +54,9 @@ public class PostDetailActivity extends AppCompatActivity {
         postId = intent.getStringExtra("post_id");
 
         toolbar = findViewById(R.id.detail_post_toolbar);
-        setSupportActionBar(toolbar);
         toolbar.setTitleTextAppearance(this, R.style.ToolBarFont);
+        setSupportActionBar(toolbar);
+
         toolbar.setNavigationIcon(R.drawable.ic_close);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override

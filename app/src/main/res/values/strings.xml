@@ -4,13 +4,6 @@
     <string name="action_logout">Logout</string>
     <string name="action_settings">Settings</string>
     <string name="home">Home</string>
-
-    <string name="phone">You will recive the OTP message from Chitter for verification.</string>
-
-    <string name="OTP">We have sent you access code via SMS for mobile number verification.</string>
-
     <string name="FbUsername">Facebook Name and Username is different, Find your Username here. <a href="https://support.spryfox.com/hc/en-us/articles/218505798-How-do-I-find-my-Facebook-username-">Facebook username</a></string>
-
     <string name="TwitterUserID">Find your Twitter ID here. <a href="http://gettwitterid.com/">Twitter users ID</a></string>
-
 </resources>

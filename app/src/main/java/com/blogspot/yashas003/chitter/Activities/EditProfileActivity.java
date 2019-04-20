@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -46,11 +47,15 @@ import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+import id.zelory.compressor.Compressor;
 
 public class EditProfileActivity extends AppCompatActivity {
     StorageReference mStore;
@@ -80,6 +85,7 @@ public class EditProfileActivity extends AppCompatActivity {
 
     boolean isChanged = false;
     Uri mainImageURI = null;
+    Bitmap compressedImageFile;
     String oldUniqueName;
     String unique_name;
     String user_id;
@@ -92,11 +98,13 @@ public class EditProfileActivity extends AppCompatActivity {
         setContentView(R.layout.activity_edit_profile);
 
         if (Build.VERSION.SDK_INT >= 21) {
-            getWindow().setStatusBarColor(getResources().getColor(R.color.colorPrimary));
+            getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+            getWindow().setStatusBarColor(Color.TRANSPARENT);
             getWindow().setNavigationBarColor(Color.BLACK);
         }
 
         toolbar = findViewById(R.id.edit_profile_toolbar);
+        toolbar.setTitleTextAppearance(this, R.style.ToolBarFont);
         setSupportActionBar(toolbar);
         toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.ic_close));
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -176,7 +184,6 @@ public class EditProfileActivity extends AppCompatActivity {
                 boy.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
                         genderDialog.dismiss();
                         userGender.setText(Male);
                     }
@@ -186,7 +193,6 @@ public class EditProfileActivity extends AppCompatActivity {
                 girl.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-
                         genderDialog.dismiss();
                         userGender.setText(Female);
                     }
@@ -218,11 +224,7 @@ public class EditProfileActivity extends AppCompatActivity {
         dialog.setContentView(R.layout.progress_bar);
         dialog.show();
 
-        mFirestore
-                .collection("Users")
-                .document(user_id)
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
+        mFirestore.collection("Users").document(user_id).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
                     @Override
                     public void onComplete(Task<DocumentSnapshot> task) {
 
@@ -235,12 +237,8 @@ public class EditProfileActivity extends AppCompatActivity {
                                 if (image != null) {
 
                                     mainImageURI = Uri.parse(image);
-                                    Picasso
-                                            .get()
-                                            .load(image)
-                                            .placeholder(R.mipmap.placeholder)
-                                            .error(R.mipmap.placeholder)
-                                            .into(userImage);
+                                    Picasso.get().load(image).placeholder(R.mipmap.placeholder)
+                                            .error(R.mipmap.placeholder).into(userImage);
                                 }
 
                                 String displayname = task.getResult().getString("user_name");
@@ -386,7 +384,26 @@ public class EditProfileActivity extends AppCompatActivity {
                                 if (isChanged) {
 
                                     StorageReference image_path = mStore.child("profile_images").child(user_id + ".jpg");
-                                    image_path.putFile(mainImageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+
+                                    // Image Compression
+                                    File newImageFile = new File(mainImageURI.getPath());
+                                    try {
+
+                                        compressedImageFile = new Compressor(EditProfileActivity.this)
+                                                .setQuality(100)
+                                                .setMaxHeight(380)
+                                                .setMaxWidth(380)
+                                                .compressToBitmap(newImageFile);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                    compressedImageFile.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                                    byte[] profileImage = baos.toByteArray();
+
+                                    // Storing Image
+                                    image_path.putBytes(profileImage).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
 
                                         @Override
                                         public void onComplete(Task<UploadTask.TaskSnapshot> task) {

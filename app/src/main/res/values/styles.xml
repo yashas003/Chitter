@@ -8,20 +8,15 @@
         <item name="colorAccent">@color/colorAccent</item>
 
         <item name="android:windowActivityTransitions">true</item>
-        <item name="actionOverflowButtonStyle">@style/DotsDarkTheme</item>
-    </style>
-
-    <style name="DotsDarkTheme" parent="@style/Widget.AppCompat.ActionButton.Overflow">
-        <item name="tint">@color/colorGray</item>
     </style>
 
     <style name="ToolBarFont">
-        <item name="android:textSize">24sp</item>
-        <item name="android:fontFamily">@font/caveat_bold</item>
+        <item name="android:fontFamily">@font/convergence</item>
     </style>
 
-    <style name="CollapsedAppBar" parent="@android:style/TextAppearance.Medium">
-        <item name="android:fontFamily">@font/caveat_bold</item>
+    <style name="FollowersToolbar">
+        <item name="android:textSize">18sp</item>
+        <item name="android:fontFamily">@font/convergence</item>
     </style>
 
 </resources>

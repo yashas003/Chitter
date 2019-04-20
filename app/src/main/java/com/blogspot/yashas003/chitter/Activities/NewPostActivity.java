@@ -49,6 +49,7 @@ public class NewPostActivity extends AppCompatActivity {
     FirebaseFirestore firebaseFirestore;
     StorageReference storageReference;
     FloatingActionButton addLocation;
+    Bitmap compressedThumbFile;
     Bitmap compressedImageFile;
     FirebaseAuth mAuth;
     String user_id;
@@ -163,7 +164,24 @@ public class NewPostActivity extends AppCompatActivity {
             final String randomName = UUID.randomUUID().toString();
             StorageReference filePath = storageReference.child("post_images").child(randomName + ".jpg");
 
-            filePath.putFile(postImageUri).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+            // Compressing the original image before storing it to the firebase=====================
+            File newImageFile = new File(postImageUri.getPath());
+            try {
+
+                compressedImageFile = new Compressor(NewPostActivity.this)
+                        .setQuality(100)
+                        .setMaxHeight(380)
+                        .setMaxWidth(380)
+                        .compressToBitmap(newImageFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            compressedImageFile.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+            byte[] imageData = baos.toByteArray();
+
+            filePath.putBytes(imageData).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
                 @Override
                 public void onComplete(@NonNull final Task<UploadTask.TaskSnapshot> task) {
 
@@ -171,20 +189,21 @@ public class NewPostActivity extends AppCompatActivity {
 
                     if (task.isSuccessful()) {
 
-                        File newImageFile = new File(postImageUri.getPath());
+                        // Compressing thumb image before storing it to the firebase================
+                        File newThumbFile = new File(postImageUri.getPath());
                         try {
 
-                            compressedImageFile = new Compressor(NewPostActivity.this)
+                            compressedThumbFile = new Compressor(NewPostActivity.this)
                                     .setQuality(1)
-                                    .setMaxHeight(30)
-                                    .setMaxWidth(30)
-                                    .compressToBitmap(newImageFile);
+                                    .setMaxHeight(48)
+                                    .setMaxWidth(48)
+                                    .compressToBitmap(newThumbFile);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
 
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        compressedImageFile.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                        compressedThumbFile.compress(Bitmap.CompressFormat.JPEG, 100, baos);
                         byte[] thumbData = baos.toByteArray();
 
                         UploadTask uploadTask = storageReference.child("post_images/thumbs").child(randomName + ".jpg").putBytes(thumbData);

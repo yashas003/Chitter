@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -43,9 +44,14 @@ import com.squareup.picasso.Picasso;
 import com.theartofdev.edmodo.cropper.CropImage;
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+
+import id.zelory.compressor.Compressor;
 
 public class SetupActivity extends AppCompatActivity {
     FirebaseFirestore firebaseFirestore;
@@ -60,6 +66,7 @@ public class SetupActivity extends AppCompatActivity {
     Dialog dialog;
 
     boolean isChanged = false;
+    Bitmap compressedImageFile;
     Uri mainImageURI = null;
     String user_id;
 
@@ -120,16 +127,10 @@ public class SetupActivity extends AppCompatActivity {
                         if (image != null) {
 
                             mainImageURI = Uri.parse(image);
-                            Picasso
-                                    .get()
-                                    .load(image)
-                                    .placeholder(R.mipmap.placeholder)
-                                    .error(R.mipmap.placeholder)
-                                    .into(setupImage);
+                            Picasso.get().load(image).placeholder(R.mipmap.placeholder).error(R.mipmap.placeholder).into(setupImage);
                         }
                     } else {
                         dialog.dismiss();
-                        Toast.makeText(SetupActivity.this, "No data available to retrive", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     dialog.dismiss();
@@ -166,14 +167,33 @@ public class SetupActivity extends AppCompatActivity {
 
                                             if (Objects.equals(user, unique_name)) {
                                                 dialog.dismiss();
-                                                Toast.makeText(SetupActivity.this, "Username already exist!! Try different username :(", Toast.LENGTH_SHORT).show();
+                                                Toast.makeText(SetupActivity.this, "Username already taken!! Try different username :(", Toast.LENGTH_SHORT).show();
                                             }
                                         }
                                     }
                                     if (task.getResult().size() == 0) {
 
                                         StorageReference image_path = storageReference.child("profile_images").child(user_id + ".jpg");
-                                        image_path.putFile(mainImageURI).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+
+                                        // Image Compression
+                                        File newImageFile = new File(mainImageURI.getPath());
+                                        try {
+
+                                            compressedImageFile = new Compressor(SetupActivity.this)
+                                                    .setQuality(100)
+                                                    .setMaxHeight(380)
+                                                    .setMaxWidth(380)
+                                                    .compressToBitmap(newImageFile);
+                                        } catch (IOException e) {
+                                            e.printStackTrace();
+                                        }
+
+                                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                                        compressedImageFile.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+                                        byte[] profileImage = baos.toByteArray();
+
+                                        // Storing Image
+                                        image_path.putBytes(profileImage).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
 
                                             @Override
                                             public void onComplete(Task<UploadTask.TaskSnapshot> task) {
@@ -226,7 +246,7 @@ public class SetupActivity extends AppCompatActivity {
         });
     }
 
-    private void storeFirestore(Task<UploadTask.TaskSnapshot> task, String user_name, String unique_name) {
+    private void storeFirestore(Task<UploadTask.TaskSnapshot> task, final String user_name, final String unique_name) {
 
         Uri download_uri;
 
@@ -249,7 +269,7 @@ public class SetupActivity extends AppCompatActivity {
 
                 if (task.isSuccessful()) {
 
-                    Toast.makeText(SetupActivity.this, "Settings saved", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(SetupActivity.this, "WELCOME " + user_name + " :)", Toast.LENGTH_SHORT).show();
                     Intent setUpIntent = new Intent(SetupActivity.this, MainActivity.class);
                     startActivity(setUpIntent);
                     finish();

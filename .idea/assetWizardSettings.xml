@@ -77,11 +77,11 @@
                         <option name="values">
                           <map>
                             <entry key="assetSourceType" value="FILE" />
-                            <entry key="height" value="58" />
-                            <entry key="outputName" value="ic_lock" />
+                            <entry key="height" value="128" />
+                            <entry key="outputName" value="ic_save" />
                             <entry key="overrideSize" value="true" />
-                            <entry key="sourceFile" value="C:\Users\Yashas\Desktop\locked.svg" />
-                            <entry key="width" value="58" />
+                            <entry key="sourceFile" value="C:\Users\Yashas\Desktop\iconfinder_accept_check_ok_outline_tick_yes_392532.svg" />
+                            <entry key="width" value="128" />
                           </map>
                         </option>
                       </PersistentState>

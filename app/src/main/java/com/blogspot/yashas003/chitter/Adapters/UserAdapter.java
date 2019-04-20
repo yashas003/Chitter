@@ -1,5 +1,6 @@
 package com.blogspot.yashas003.chitter.Adapters;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.net.ConnectivityManager;
@@ -10,6 +11,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -48,73 +51,16 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
         return new viewHolder(view);
     }
 
-    @Override
-    public void onBindViewHolder(@NonNull final viewHolder viewHolder, int i) {
+    private static void hideKeyboard(Context context) {
 
-        final Users users = users_list.get(i);
-
-        viewHolder.userName.setText(users.getUser_name());
-        Picasso.get().load(users.getUser_image()).into(viewHolder.userImage);
-        isFollowing(users.getUser_id(), firebaseUser.getUid(), viewHolder.followBtnText, viewHolder.followBtn);
-
-        if (users.getUnique_name() != null && !users.getUnique_name().trim().isEmpty()) {
-            viewHolder.uniqueName.setVisibility(View.VISIBLE);
-            viewHolder.uniqueName.setText(users.getUnique_name());
+        try {
+            ((Activity) context).getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+            if ((((Activity) context).getCurrentFocus() != null) && (((Activity) context).getCurrentFocus().getWindowToken() != null)) {
+                ((InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE)).hideSoftInputFromWindow(((Activity) context).getCurrentFocus().getWindowToken(), 0);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-
-        viewHolder.followBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (isOnline(v)) {
-
-                    if (viewHolder.followBtnText.getText().toString().equals("Follow")) {
-
-                        FirebaseDatabase.getInstance().getReference()
-                                .child("Follow").child(firebaseUser.getUid())
-                                .child("following").child(users.getUser_id())
-                                .setValue(true);
-
-                        FirebaseDatabase.getInstance().getReference()
-                                .child("Follow").child(users.getUser_id())
-                                .child("followers").child(firebaseUser.getUid())
-                                .setValue(true);
-
-                        addNotification(users.getUser_id());
-                    } else {
-
-                        FirebaseDatabase.getInstance().getReference()
-                                .child("Follow").child(firebaseUser.getUid())
-                                .child("following").child(users.getUser_id())
-                                .removeValue();
-
-                        FirebaseDatabase.getInstance().getReference()
-                                .child("Follow").child(users.getUser_id())
-                                .child("followers").child(firebaseUser.getUid())
-                                .removeValue();
-
-                        removeNotification(users.getUser_id());
-                    }
-                } else {
-                    Toast.makeText(v.getContext(), "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (isOnline(v)) {
-
-                    Intent userProfile = new Intent(v.getContext(), UsersProfileActivity.class);
-                    userProfile.putExtra("user_id", users.getUser_id());
-                    v.getContext().startActivity(userProfile);
-                } else {
-                    Toast.makeText(v.getContext(), "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
     }
 
     @Override
@@ -178,6 +124,78 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
 
         databaseReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(firebaseUser.getUid());
         databaseReference.removeValue();
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull final viewHolder viewHolder, int i) {
+
+        final Users users = users_list.get(i);
+
+        viewHolder.userName.setText(users.getUser_name());
+        Picasso.get().load(users.getUser_image()).placeholder(R.mipmap.placeholder).into(viewHolder.userImage);
+        isFollowing(users.getUser_id(), firebaseUser.getUid(), viewHolder.followBtnText, viewHolder.followBtn);
+
+        if (users.getUnique_name() != null && !users.getUnique_name().trim().isEmpty()) {
+            viewHolder.uniqueName.setVisibility(View.VISIBLE);
+            viewHolder.uniqueName.setText(users.getUnique_name());
+        }
+
+        viewHolder.followBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                hideKeyboard(v.getContext());
+
+                if (isOnline(v)) {
+
+                    if (viewHolder.followBtnText.getText().toString().equals("Follow")) {
+
+                        FirebaseDatabase.getInstance().getReference()
+                                .child("Follow").child(firebaseUser.getUid())
+                                .child("following").child(users.getUser_id())
+                                .setValue(true);
+
+                        FirebaseDatabase.getInstance().getReference()
+                                .child("Follow").child(users.getUser_id())
+                                .child("followers").child(firebaseUser.getUid())
+                                .setValue(true);
+
+                        addNotification(users.getUser_id());
+                    } else {
+
+                        FirebaseDatabase.getInstance().getReference()
+                                .child("Follow").child(firebaseUser.getUid())
+                                .child("following").child(users.getUser_id())
+                                .removeValue();
+
+                        FirebaseDatabase.getInstance().getReference()
+                                .child("Follow").child(users.getUser_id())
+                                .child("followers").child(firebaseUser.getUid())
+                                .removeValue();
+
+                        removeNotification(users.getUser_id());
+                    }
+                } else {
+                    Toast.makeText(v.getContext(), "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        viewHolder.itemView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (isOnline(v)) {
+
+                    hideKeyboard(v.getContext());
+                    Intent userProfile = new Intent(v.getContext(), UsersProfileActivity.class);
+                    userProfile.putExtra("user_id", users.getUser_id());
+                    v.getContext().startActivity(userProfile);
+                } else {
+                    Toast.makeText(v.getContext(), "You are not connected to the internet :(", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     class viewHolder extends RecyclerView.ViewHolder {

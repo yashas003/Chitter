@@ -51,7 +51,9 @@ public class EmailActivity extends AppCompatActivity {
         }
 
         toolbar = findViewById(R.id.edit_email_toolbar);
+        toolbar.setTitleTextAppearance(this, R.style.ToolBarFont);
         setSupportActionBar(toolbar);
+
         toolbar.setNavigationIcon(getResources().getDrawable(R.drawable.ic_close));
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override

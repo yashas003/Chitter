@@ -42,7 +42,6 @@ public class NotificationFragment extends Fragment {
     NotificationAdapter notificationAdapter;
 
     DatabaseReference reference;
-
     FirebaseUser firebaseUser;
 
     @Nullable

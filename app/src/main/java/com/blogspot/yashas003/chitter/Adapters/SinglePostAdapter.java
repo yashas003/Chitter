@@ -28,6 +28,7 @@ import android.widget.Toast;
 
 import com.blogspot.yashas003.chitter.Activities.CommentsActivity;
 import com.blogspot.yashas003.chitter.Activities.FollowersActivity;
+import com.blogspot.yashas003.chitter.Activities.UsersProfileActivity;
 import com.blogspot.yashas003.chitter.BuildConfig;
 import com.blogspot.yashas003.chitter.Model.Posts;
 import com.blogspot.yashas003.chitter.R;
@@ -43,6 +44,8 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 import com.varunest.sparkbutton.SparkButton;
@@ -60,6 +63,8 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
 
     private DatabaseReference databaseReference;
     private FirebaseDatabase firebaseDatabase;
+    private StorageReference imageRef;
+    private StorageReference thumbRef;
     private FirebaseFirestore firestore;
     private FirebaseUser firebaseUser;
 
@@ -75,8 +80,8 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
         View view = LayoutInflater.from(mContext).inflate(R.layout.post_item, viewGroup, false);
-        firebaseDatabase = FirebaseDatabase.getInstance();
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
+        firebaseDatabase = FirebaseDatabase.getInstance();
         firestore = FirebaseFirestore.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
         return new ViewHolder(view);
@@ -87,6 +92,21 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
     public void onBindViewHolder(@NonNull final ViewHolder viewHolder, int i) {
 
         final Posts posts = post_list.get(i);
+
+        //Visit User Profile========================================================================
+        viewHolder.postUserImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                visitUserProfile(posts.getUser_id());
+            }
+        });
+
+        viewHolder.postOwner.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                visitUserProfile(posts.getUser_id());
+            }
+        });
 
         //Setting posts description=================================================================
         String description = posts.getDesc();
@@ -238,7 +258,7 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
         viewHolder.postManage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(final View v) {
-                showMore(posts.getUser_id(), posts.getPost_id(), posts.getImage_url(), v);
+                showMore(posts.getUser_id(), posts.getPost_id(), posts.getImage_url(), posts.getThumb(), v);
             }
         });
     }
@@ -254,10 +274,10 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-    private void showMore(String user_id, final String post_id, final String image_url, View v) {
+    private void showMore(String user_id, final String post_id, final String image_url, final String thumb, View v) {
 
         final Dialog singlePostManage = new Dialog(v.getContext());
-        singlePostManage.getWindow().setBackgroundDrawableResource(R.drawable.dialog_background);
+        Objects.requireNonNull(singlePostManage.getWindow()).setBackgroundDrawableResource(R.drawable.dialog_background);
         singlePostManage.requestWindowFeature(Window.FEATURE_NO_TITLE);
         singlePostManage.setContentView(R.layout.post_manage_dialog);
         singlePostManage.show();
@@ -276,23 +296,31 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
             @Override
             public void onClick(final View v) {
 
+                final Dialog progress = new Dialog(v.getContext());
+                Objects.requireNonNull(progress.getWindow()).setBackgroundDrawableResource(android.R.color.transparent);
+                progress.requestWindowFeature(Window.FEATURE_NO_TITLE);
+                progress.setContentView(R.layout.progress_bar);
+                progress.show();
+
                 singlePostManage.dismiss();
-                firestore.collection("Posts").document(post_id).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                imageRef = FirebaseStorage.getInstance().getReferenceFromUrl(image_url);
+                imageRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
 
                         if (task.isSuccessful()) {
 
-                            notifyDataSetChanged();
-                            ((Activity) mContext).finish();
+                            thumbRef = FirebaseStorage.getInstance().getReferenceFromUrl(thumb);
+                            thumbRef.delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
 
-                            firebaseDatabase.getReference().child("Saves").child(firebaseUser.getUid()).child(post_id).removeValue();
-                            firebaseDatabase.getReference("Comments").child(post_id).removeValue();
-                            firebaseDatabase.getReference().child("Likes").child(post_id).removeValue();
-                            Toast.makeText(v.getContext(), "Post deleted :(", Toast.LENGTH_SHORT).show();
-                        } else {
-                            String e = Objects.requireNonNull(task.getException()).getMessage();
-                            Toast.makeText(v.getContext(), "Error: " + e, Toast.LENGTH_SHORT).show();
+                                    if (task.isSuccessful()) {
+
+                                        deleteFirestoreData(v, post_id, progress);
+                                    }
+                                }
+                            });
                         }
                     }
                 });
@@ -308,6 +336,30 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
                 ClipData clip = ClipData.newPlainText(null, image_url);
                 clipboard.setPrimaryClip(clip);
                 Toast.makeText(v.getContext(), "Link copied to the clip board :)", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void deleteFirestoreData(final View v, final String post_id, final Dialog progress) {
+
+        firestore.collection("Posts").document(post_id).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+
+                if (task.isSuccessful()) {
+
+                    progress.dismiss();
+                    notifyDataSetChanged();
+                    ((Activity) mContext).finish();
+
+                    firebaseDatabase.getReference().child("Saves").child(firebaseUser.getUid()).child(post_id).removeValue();
+                    firebaseDatabase.getReference("Comments").child(post_id).removeValue();
+                    firebaseDatabase.getReference().child("Likes").child(post_id).removeValue();
+                    Toast.makeText(v.getContext(), "Post deleted :)", Toast.LENGTH_SHORT).show();
+                } else {
+                    String e = Objects.requireNonNull(task.getException()).getMessage();
+                    Toast.makeText(v.getContext(), "Error: " + e, Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -463,6 +515,13 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+    }
+
+    private void visitUserProfile(String user_id) {
+
+        Intent intent = new Intent(mContext, UsersProfileActivity.class);
+        intent.putExtra("user_id", user_id);
+        mContext.startActivity(intent);
     }
 
     private void addNotification(String user_id, String post_id) {

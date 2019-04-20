@@ -60,8 +60,9 @@ public class FollowersActivity extends AppCompatActivity {
         title = intent.getStringExtra("title");
 
         toolbar = findViewById(R.id.followers_toolbar);
-        toolbar.setTitleTextAppearance(this, R.style.ToolBarFont);
+        toolbar.setTitleTextAppearance(this, R.style.FollowersToolbar);
         setSupportActionBar(toolbar);
+
         getSupportActionBar().setTitle(title);
         toolbar.setNavigationIcon(R.drawable.ic_close);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
@@ -72,7 +73,6 @@ public class FollowersActivity extends AppCompatActivity {
         });
 
         loader = findViewById(R.id.loader);
-
         firestore = FirebaseFirestore.getInstance();
 
         usersList = new ArrayList<>();

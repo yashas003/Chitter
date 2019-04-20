@@ -145,7 +145,7 @@ public class UsersProfileActivity extends AppCompatActivity {
 
         collapseBar = findViewById(R.id.users_collapsingToolbar);
         collapseBar.setExpandedTitleColor(getResources().getColor(android.R.color.transparent));
-        collapseBar.setCollapsedTitleTextAppearance(R.style.CollapsedAppBar);
+        collapseBar.setCollapsedTitleTextAppearance(R.style.ToolBarFont);
 
         noPosts = findViewById(R.id.users_no_post);
         users_following = findViewById(R.id.users_following);

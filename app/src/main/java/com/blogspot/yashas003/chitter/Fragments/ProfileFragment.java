@@ -143,7 +143,7 @@ public class ProfileFragment extends Fragment {
 
         ctl = view.findViewById(R.id.collapsingToolbar);
         ctl.setExpandedTitleColor(getResources().getColor(android.R.color.transparent));
-        ctl.setCollapsedTitleTextAppearance(R.style.CollapsedAppBar);
+        ctl.setCollapsedTitleTextAppearance(R.style.ToolBarFont);
 
         mAuth = FirebaseAuth.getInstance();
         firebaseFirestore = FirebaseFirestore.getInstance();
@@ -332,7 +332,6 @@ public class ProfileFragment extends Fragment {
                         abl.setVisibility(View.VISIBLE);
                         recyclerView.setVisibility(View.VISIBLE);
                         spinner.setVisibility(View.GONE);
-                        Toast.makeText(getActivity(), "No data available to retrieve", Toast.LENGTH_SHORT).show();
                     }
                 } else {
                     abl.setVisibility(View.VISIBLE);
@@ -404,9 +403,9 @@ public class ProfileFragment extends Fragment {
                                 }
                                 gridViewAdapter.notifyDataSetChanged();
                             }
-                            if (mImageUrls.isEmpty()) {
-                                noPost.setVisibility(View.VISIBLE);
-                            }
+                        }
+                        if (mImageUrls.isEmpty()) {
+                            noPost.setVisibility(View.VISIBLE);
                         }
                     }
                 });

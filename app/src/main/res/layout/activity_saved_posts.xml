@@ -44,7 +44,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:fontFamily="@font/galdeano"
+                android:fontFamily="@font/convergence"
                 android:text="No saved posts"
                 android:textSize="24sp"
                 android:textStyle="bold"

@@ -71,7 +71,6 @@
                             android:layout_width="0dp"
                             android:layout_height="300dp"
                             android:scaleType="centerCrop"
-                            app:layout_constraintBottom_toTopOf="@+id/textView2"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
                             app:layout_constraintTop_toTopOf="parent"
@@ -94,37 +93,23 @@
                             app:maxImageSize="18dp"
                             app:srcCompat="@drawable/ic_location" />
 
-                        <TextView
-                            android:id="@+id/textView2"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="16dp"
-                            android:layout_marginTop="16dp"
-                            android:layout_marginEnd="16dp"
-                            android:text="Add description"
-                            android:textSize="16sp"
-                            app:layout_constraintBottom_toTopOf="@+id/description"
-                            app:layout_constraintEnd_toEndOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/new_image"
-                            tools:ignore="HardcodedText" />
-
                         <EditText
                             android:id="@+id/description"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="16dp"
-                            android:layout_marginTop="8dp"
+                            android:layout_marginTop="16dp"
                             android:layout_marginEnd="16dp"
                             android:layout_marginBottom="16dp"
                             android:backgroundTint="@android:color/transparent"
                             android:ems="10"
+                            android:fontFamily="@font/convergence"
                             android:hint="Write something..."
                             android:inputType="textMultiLine"
                             app:layout_constraintBottom_toBottomOf="parent"
                             app:layout_constraintEnd_toEndOf="parent"
                             app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintTop_toBottomOf="@+id/textView2"
+                            app:layout_constraintTop_toBottomOf="@+id/new_image"
                             tools:ignore="Autofill,HardcodedText" />
 
                     </android.support.constraint.ConstraintLayout>
