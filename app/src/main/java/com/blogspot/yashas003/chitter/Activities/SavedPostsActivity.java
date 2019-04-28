@@ -31,7 +31,6 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import static android.support.constraint.Constraints.TAG;
@@ -85,9 +84,10 @@ public class SavedPostsActivity extends AppCompatActivity {
         user_id = mAuth.getCurrentUser().getUid();
 
         savedListView = findViewById(R.id.saved_post_list);
-        savedListView.setLayoutManager(new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL));
+        savedListView.setLayoutManager(new StaggeredGridLayoutManager(3, LinearLayoutManager.VERTICAL));
         gridViewAdapter = new GridViewAdapter(savedPost);
         savedListView.setAdapter(gridViewAdapter);
+        savedListView.setItemViewCacheSize(30);
 
         getSavedPostList();
     }
@@ -134,7 +134,6 @@ public class SavedPostsActivity extends AppCompatActivity {
                                 savedListView.setVisibility(View.VISIBLE);
                             }
                         }
-                        Collections.reverse(savedPost);
                         gridViewAdapter.notifyDataSetChanged();
                     }
                 }

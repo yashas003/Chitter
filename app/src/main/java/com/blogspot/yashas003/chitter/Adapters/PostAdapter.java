@@ -31,6 +31,7 @@ import com.blogspot.yashas003.chitter.Activities.UsersProfileActivity;
 import com.blogspot.yashas003.chitter.BuildConfig;
 import com.blogspot.yashas003.chitter.Model.Posts;
 import com.blogspot.yashas003.chitter.R;
+import com.blogspot.yashas003.chitter.Utils.PicassoCache;
 import com.blogspot.yashas003.chitter.Utils.TimeSinceAgo;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -50,8 +51,11 @@ import com.varunest.sparkbutton.SparkButton;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import static android.support.constraint.Constraints.TAG;
 
@@ -59,27 +63,27 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
     private DatabaseReference databaseReference;
     private FirebaseFirestore firestore;
     private FirebaseUser firebaseUser;
-
     private List<Posts> post_list;
+    private Context mContext;
 
-    public PostAdapter(List<Posts> post_list) {
+    public PostAdapter(List<Posts> post_list, Context mContext) {
         this.post_list = post_list;
+        this.mContext = mContext;
     }
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup viewGroup, int i) {
-        View view = LayoutInflater.from(viewGroup.getContext()).inflate(R.layout.post_item, viewGroup, false);
+        View view = LayoutInflater.from(mContext).inflate(R.layout.post_item, viewGroup, false);
         FirebaseAuth firebaseAuth = FirebaseAuth.getInstance();
-        firestore = FirebaseFirestore.getInstance();
         firebaseUser = firebaseAuth.getCurrentUser();
+        firestore = FirebaseFirestore.getInstance();
         return new ViewHolder(view);
     }
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public void onBindViewHolder(@NonNull final ViewHolder viewHolder, @SuppressLint("RecyclerView") final int i) {
-
         final Posts posts = post_list.get(i);
 
         //VisitPostOwner============================================================================
@@ -107,12 +111,19 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
 
         //Setting posts Picture=====================================================================
-        Picasso.get().load(posts.getThumb()).placeholder(R.mipmap.postback).into(viewHolder.postImage, new Callback() {
+        PicassoCache
+                .getPicassoInstance(mContext)
+                .load(posts.getThumb())
+                .placeholder(R.mipmap.postback)
+                .into(viewHolder.postImage, new Callback() {
             @Override
             public void onSuccess() {
-                Picasso.get().load(posts.getImage_url()).placeholder(viewHolder.postImage.getDrawable()).into(viewHolder.postImage);
+                PicassoCache
+                        .getPicassoInstance(mContext)
+                        .load(posts.getImage_url())
+                        .placeholder(viewHolder.postImage.getDrawable())
+                        .into(viewHolder.postImage);
             }
-
             @Override
             public void onError(Exception e) {
             }
@@ -125,11 +136,11 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
 
                 if (task.isSuccessful()) {
 
-                    String userName = task.getResult().getString("user_name");
-                    String userImage = task.getResult().getString("user_image");
+                    String user_name = task.getResult().getString("user_name");
+                    String user_image = task.getResult().getString("user_image");
 
-                    viewHolder.postOwner.setText(userName);
-                    Picasso.get().load(userImage).placeholder(R.mipmap.placeholder).into(viewHolder.postUserImage);
+                    viewHolder.postOwner.setText(user_name);
+                    Picasso.get().load(user_image).placeholder(R.mipmap.placeholder).into(viewHolder.postUserImage);
                 }
             }
         });
@@ -159,7 +170,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
             private GestureDetector gestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
                 @Override
                 public boolean onDoubleTap(MotionEvent e) {
-                    doubleTapToLike(viewHolder.likeBtn, posts.getPost_id(), posts.getUser_id());
+                    doubleTapToLike(viewHolder.likeBtn, posts.getPost_id(), posts.getUser_id(), posts.getImage_url());
 
                     //Double Tap animation============================================================
                     showLikeAnimation(viewHolder.showLike);
@@ -178,7 +189,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         viewHolder.likeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                likeThePost(viewHolder.likeBtn, posts.getPost_id(), posts.getUser_id());
+                likeThePost(viewHolder.likeBtn, posts.getPost_id(), posts.getUser_id(), posts.getImage_url());
             }
         });
 
@@ -224,6 +235,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                 Intent comment = new Intent(v.getContext(), CommentsActivity.class);
                 comment.putExtra("post_id", posts.getPost_id());
                 comment.putExtra("owner_id", posts.getUser_id());
+                comment.putExtra("image_url", posts.getImage_url());
                 v.getContext().startActivity(comment);
             }
         });
@@ -234,6 +246,7 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
                 Intent comment = new Intent(v.getContext(), CommentsActivity.class);
                 comment.putExtra("post_id", posts.getPost_id());
                 comment.putExtra("owner_id", posts.getUser_id());
+                comment.putExtra("image_url", posts.getImage_url());
                 v.getContext().startActivity(comment);
             }
         });
@@ -295,12 +308,12 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         }
     }
 
-    private void doubleTapToLike(View likeBtn, String post_id, String user_id) {
+    private void doubleTapToLike(View likeBtn, String post_id, String user_id, String image_url) {
 
         if (isOnline(likeBtn)) {
 
             if (likeBtn.getTag().equals("like")) {
-                addNotification(user_id, post_id);
+                addNotification(user_id, post_id, image_url);
                 FirebaseDatabase.getInstance().getReference().child("Likes").child(post_id).child(firebaseUser.getUid()).setValue(true);
             }
         } else {
@@ -387,13 +400,13 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         });
     }
 
-    private void likeThePost(View likeBtn, String post_id, String user_id) {
+    private void likeThePost(View likeBtn, String post_id, String user_id, String image_url) {
 
         if (isOnline(likeBtn)) {
 
             if (likeBtn.getTag().equals("like")) {
 
-                addNotification(user_id, post_id);
+                addNotification(user_id, post_id, image_url);
                 FirebaseDatabase.getInstance().getReference().child("Likes").child(post_id).child(firebaseUser.getUid()).setValue(true);
             } else {
 
@@ -462,15 +475,22 @@ public class PostAdapter extends RecyclerView.Adapter<PostAdapter.ViewHolder> {
         v.getContext().startActivity(userIntent);
     }
 
-    private void addNotification(String user_id, String post_id) {
+    private void addNotification(String user_id, String post_id, String image_url) {
 
         if (!firebaseUser.getUid().equals(user_id)) {
-            databaseReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(post_id);
+
+            String date = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
+            databaseReference = FirebaseDatabase.getInstance()
+                    .getReference("Notifications")
+                    .child(user_id)
+                    .child(post_id);
 
             HashMap<String, Object> notifyMap = new HashMap<>();
             notifyMap.put("user_id", firebaseUser.getUid());
             notifyMap.put("text", "liked your post.");
             notifyMap.put("post_id", post_id);
+            notifyMap.put("image_url", image_url);
+            notifyMap.put("time", date);
             notifyMap.put("is_post", true);
 
             databaseReference.setValue(notifyMap);

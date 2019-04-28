@@ -94,6 +94,8 @@ public class UsersProfileActivity extends AppCompatActivity {
     CollapsingToolbarLayout collapseBar;
     RecyclerView postsRecyclerView;
     CircleImageView userProfileImage;
+    TextView usersFollowersName;
+    TextView usersFollowingName;
     TextView displayProfileName;
     TextView userProfileBio;
     TextView followBtnText;
@@ -148,39 +150,27 @@ public class UsersProfileActivity extends AppCompatActivity {
         collapseBar.setCollapsedTitleTextAppearance(R.style.ToolBarFont);
 
         noPosts = findViewById(R.id.users_no_post);
+        followBtn = findViewById(R.id.users_followBtn);
         users_following = findViewById(R.id.users_following);
         users_followers = findViewById(R.id.users_followers);
-        backgroundPic = findViewById(R.id.users_back_picture);
-        displayProfileName = findViewById(R.id.users_userName);
         userProfileBio = findViewById(R.id.users_uniqueName);
+        backgroundPic = findViewById(R.id.users_back_picture);
+        userProfileImage = findViewById(R.id.users_userImage);
+        displayProfileName = findViewById(R.id.users_userName);
         followBtnText = findViewById(R.id.users_followBtnText);
+        usersFollowersName = findViewById(R.id.users_followers_name);
+        usersFollowingName = findViewById(R.id.users_following_name);
         postsRecyclerView = findViewById(R.id.users_posts_recyclerView);
         followUserToSeePosts = findViewById(R.id.follow_user_to_see_post);
 
         users_postCount = findViewById(R.id.users_userPosts);
         users_postCount.setText("0");
 
-        followBtn = findViewById(R.id.users_followBtn);
-        followBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                followUser();
-            }
-        });
-
         progressBar = findViewById(R.id.users_progress);
         progressBar.setVisibility(View.VISIBLE);
 
         appBarLayout = findViewById(R.id.users_appBarLayout);
         appBarLayout.setVisibility(View.GONE);
-
-        userProfileImage = findViewById(R.id.users_userImage);
-        userProfileImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showProfileImage();
-            }
-        });
 
         boomMenu = findViewById(R.id.users_boom);
         boomMenu.setButtonEnum(ButtonEnum.SimpleCircle);
@@ -235,30 +225,45 @@ public class UsersProfileActivity extends AppCompatActivity {
             }
         });
 
+        followBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                followUser();
+            }
+        });
+
         users_followers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                String followersCount = users_followers.getText().toString();
-                if (!followersCount.equals("0")) {
-                    Intent followersIntent = new Intent(UsersProfileActivity.this, FollowersActivity.class);
-                    followersIntent.putExtra("id", user_id);
-                    followersIntent.putExtra("title", "followers");
-                    startActivity(followersIntent);
-                }
+                visitFollowers();
             }
         });
 
         users_following.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String followingCount = users_following.getText().toString();
-                if (!followingCount.equals("0")) {
-                    Intent followersIntent = new Intent(UsersProfileActivity.this, FollowersActivity.class);
-                    followersIntent.putExtra("id", user_id);
-                    followersIntent.putExtra("title", "following");
-                    startActivity(followersIntent);
-                }
+                visitFollowing();
+            }
+        });
+
+        usersFollowersName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                visitFollowers();
+            }
+        });
+
+        usersFollowingName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                visitFollowing();
+            }
+        });
+
+        userProfileImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showProfileImage();
             }
         });
 
@@ -266,6 +271,7 @@ public class UsersProfileActivity extends AppCompatActivity {
         staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL);
         postsRecyclerView.setLayoutManager(staggeredGridLayoutManager);
         postsRecyclerView.setAdapter(gridViewAdapter);
+        postsRecyclerView.setItemViewCacheSize(30);
     }
 
     @Override
@@ -442,6 +448,28 @@ public class UsersProfileActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    private void visitFollowers() {
+
+        String followersCount = users_followers.getText().toString();
+        if (!followersCount.equals("0")) {
+            Intent followersIntent = new Intent(UsersProfileActivity.this, FollowersActivity.class);
+            followersIntent.putExtra("id", user_id);
+            followersIntent.putExtra("title", "followers");
+            startActivity(followersIntent);
+        }
+    }
+
+    private void visitFollowing() {
+
+        String followingCount = users_following.getText().toString();
+        if (!followingCount.equals("0")) {
+            Intent followersIntent = new Intent(UsersProfileActivity.this, FollowersActivity.class);
+            followersIntent.putExtra("id", user_id);
+            followersIntent.putExtra("title", "following");
+            startActivity(followersIntent);
+        }
     }
 
     private void getPostsCount() {
@@ -733,12 +761,18 @@ public class UsersProfileActivity extends AppCompatActivity {
     private void addNotification() {
 
         if (!firebaseUser.getUid().equals(user_id)) {
-            mReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(firebaseUser.getUid());
+
+            String date = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
+            mReference = FirebaseDatabase.getInstance()
+                    .getReference("Notifications")
+                    .child(user_id)
+                    .child(firebaseUser.getUid());
 
             HashMap<String, Object> notifyMap = new HashMap<>();
             notifyMap.put("user_id", firebaseUser.getUid());
             notifyMap.put("text", "Started following you.");
             notifyMap.put("post_id", "");
+            notifyMap.put("time", date);
             notifyMap.put("is_post", false);
 
             mReference.setValue(notifyMap);

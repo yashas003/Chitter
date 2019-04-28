@@ -53,6 +53,8 @@ public class NewPostActivity extends AppCompatActivity {
     Bitmap compressedImageFile;
     FirebaseAuth mAuth;
     String user_id;
+    String user_name;
+    String user_image;
     Dialog dialog;
     ImageView newImage;
     EditText description;
@@ -115,6 +117,13 @@ public class NewPostActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        user_name = getIntent().getStringExtra("user_name");
+        user_image = getIntent().getStringExtra("user_image");
+    }
+
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
@@ -164,7 +173,7 @@ public class NewPostActivity extends AppCompatActivity {
             final String randomName = UUID.randomUUID().toString();
             StorageReference filePath = storageReference.child("post_images").child(randomName + ".jpg");
 
-            // Compressing the original image before storing it to the firebase=====================
+            // Compressing Image====================================================================
             File newImageFile = new File(postImageUri.getPath());
             try {
 
@@ -189,7 +198,7 @@ public class NewPostActivity extends AppCompatActivity {
 
                     if (task.isSuccessful()) {
 
-                        // Compressing thumb image before storing it to the firebase================
+                        // Compressing thumbnail========================================================
                         File newThumbFile = new File(postImageUri.getPath());
                         try {
 
@@ -221,6 +230,8 @@ public class NewPostActivity extends AppCompatActivity {
                                 postMap.put("desc", desc);
                                 postMap.put("user_id", user_id);
                                 postMap.put("post_id", post_id);
+                                postMap.put("user_name", user_name);
+                                postMap.put("user_image", user_image);
                                 postMap.put("time", FieldValue.serverTimestamp());
 
                                 docRef.set(postMap).addOnCompleteListener(new OnCompleteListener<Void>() {

@@ -26,6 +26,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 
 public class MainActivity extends AppCompatActivity {
     String user_id;
+    String userName;
+    String userImage;
     FirebaseAuth mAuth;
     FirebaseFirestore firestore;
     BottomNavigationView btmNav;
@@ -47,7 +49,10 @@ public class MainActivity extends AppCompatActivity {
                             break;
 
                         case R.id.ic_photo:
-                            startActivity(new Intent(MainActivity.this, NewPostActivity.class));
+                            Intent intent = new Intent(MainActivity.this, NewPostActivity.class);
+                            intent.putExtra("user_name", userName);
+                            intent.putExtra("user_image", userImage);
+                            startActivity(intent);
                             return false;
 
                         case R.id.ic_notifications:
@@ -104,7 +109,11 @@ public class MainActivity extends AppCompatActivity {
 
                     if (task.isSuccessful()) {
 
-                        if (!task.getResult().exists()) {
+                        if (task.getResult().exists()) {
+
+                            userName = task.getResult().getString("user_name");
+                            userImage = task.getResult().getString("user_image");
+                        } else {
 
                             Intent setupIntent = new Intent(MainActivity.this, SetupActivity.class);
                             startActivity(setupIntent);

@@ -53,8 +53,11 @@ import com.varunest.sparkbutton.SparkButton;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 
 import static android.support.constraint.Constraints.TAG;
@@ -172,7 +175,7 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
             private GestureDetector gestureDetector = new GestureDetector(new GestureDetector.SimpleOnGestureListener() {
                 @Override
                 public boolean onDoubleTap(MotionEvent e) {
-                    doubleTapToLike(viewHolder.likeBtn, posts.getPost_id(), posts.getUser_id());
+                    doubleTapToLike(viewHolder.likeBtn, posts.getPost_id(), posts.getUser_id(), posts.getImage_url());
 
                     //Double Tap animation============================================================
                     showLikeAnimation(viewHolder.showLike);
@@ -191,7 +194,7 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
         viewHolder.likeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                likeThePost(viewHolder.likeBtn, posts.getPost_id(), posts.getUser_id());
+                likeThePost(viewHolder.likeBtn, posts.getPost_id(), posts.getUser_id(), posts.getImage_url());
             }
         });
 
@@ -274,7 +277,7 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
         return netInfo != null && netInfo.isConnectedOrConnecting();
     }
 
-    private void showMore(String user_id, final String post_id, final String image_url, final String thumb, View v) {
+    private void showMore(final String user_id, final String post_id, final String image_url, final String thumb, View v) {
 
         final Dialog singlePostManage = new Dialog(v.getContext());
         Objects.requireNonNull(singlePostManage.getWindow()).setBackgroundDrawableResource(R.drawable.dialog_background);
@@ -317,7 +320,7 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
 
                                     if (task.isSuccessful()) {
 
-                                        deleteFirestoreData(v, post_id, progress);
+                                        deleteFirestoreData(v, post_id, user_id, progress);
                                     }
                                 }
                             });
@@ -340,7 +343,7 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
         });
     }
 
-    private void deleteFirestoreData(final View v, final String post_id, final Dialog progress) {
+    private void deleteFirestoreData(final View v, final String post_id, final String user_id, final Dialog progress) {
 
         firestore.collection("Posts").document(post_id).delete().addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
@@ -352,11 +355,16 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
                     notifyDataSetChanged();
                     ((Activity) mContext).finish();
 
-                    firebaseDatabase.getReference().child("Saves").child(firebaseUser.getUid()).child(post_id).removeValue();
-                    firebaseDatabase.getReference("Comments").child(post_id).removeValue();
                     firebaseDatabase.getReference().child("Likes").child(post_id).removeValue();
+                    firebaseDatabase.getReference().child("Comments").child(post_id).removeValue();
+                    firebaseDatabase.getReference().child("Notifications").child(user_id).child(post_id).removeValue();
+                    firebaseDatabase.getReference().child("Saves").child(firebaseUser.getUid()).child(post_id).removeValue();
+                    firebaseDatabase.getReference().child("Notifications").child(user_id).child("comment" + post_id).removeValue();
+                    firebaseDatabase.getReference().child("Notifications").child(user_id).child(firebaseUser.getUid()).removeValue();
+
                     Toast.makeText(v.getContext(), "Post deleted :)", Toast.LENGTH_SHORT).show();
                 } else {
+
                     String e = Objects.requireNonNull(task.getException()).getMessage();
                     Toast.makeText(v.getContext(), "Error: " + e, Toast.LENGTH_SHORT).show();
                 }
@@ -364,11 +372,11 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
         });
     }
 
-    private void doubleTapToLike(View likeBtn, String post_id, String user_id) {
+    private void doubleTapToLike(View likeBtn, String post_id, String user_id, String image_url) {
 
         if (isOnline(likeBtn)) {
             if (likeBtn.getTag().equals("like")) {
-                addNotification(user_id, post_id);
+                addNotification(user_id, post_id, image_url);
                 FirebaseDatabase.getInstance().getReference().child("Likes").child(post_id).child(firebaseUser.getUid()).setValue(true);
             }
         } else {
@@ -455,13 +463,13 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
         });
     }
 
-    private void likeThePost(View likeBtn, String post_id, String user_id) {
+    private void likeThePost(View likeBtn, String post_id, String user_id, String image_url) {
 
         if (isOnline(likeBtn)) {
 
             if (likeBtn.getTag().equals("like")) {
 
-                addNotification(user_id, post_id);
+                addNotification(user_id, post_id, image_url);
                 FirebaseDatabase.getInstance().getReference().child("Likes").child(post_id).child(firebaseUser.getUid()).setValue(true);
             } else {
 
@@ -524,15 +532,22 @@ public class SinglePostAdapter extends RecyclerView.Adapter<SinglePostAdapter.Vi
         mContext.startActivity(intent);
     }
 
-    private void addNotification(String user_id, String post_id) {
+    private void addNotification(String user_id, String post_id, String image_url) {
 
         if (!firebaseUser.getUid().equals(user_id)) {
-            databaseReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(post_id);
+
+            String date = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
+            databaseReference = FirebaseDatabase.getInstance()
+                    .getReference("Notifications")
+                    .child(user_id)
+                    .child(post_id);
 
             HashMap<String, Object> notifyMap = new HashMap<>();
             notifyMap.put("user_id", firebaseUser.getUid());
             notifyMap.put("text", "liked your post.");
             notifyMap.put("post_id", post_id);
+            notifyMap.put("image_url", image_url);
+            notifyMap.put("time", date);
             notifyMap.put("is_post", true);
 
             databaseReference.setValue(notifyMap);

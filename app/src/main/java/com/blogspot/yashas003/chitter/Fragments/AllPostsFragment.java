@@ -5,7 +5,6 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.Fragment;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.Log;
@@ -43,7 +42,7 @@ public class AllPostsFragment extends Fragment {
     List<Posts> postsList;
     RecyclerView post_list_view;
     GridViewAdapter gridViewAdapter;
-    StaggeredGridLayoutManager staggeredGridLayoutManager;
+    StaggeredGridLayoutManager gridLayoutManager;
 
     FirebaseFirestore firestore;
 
@@ -73,11 +72,12 @@ public class AllPostsFragment extends Fragment {
 
         postsList = new ArrayList<>();
         gridViewAdapter = new GridViewAdapter(postsList);
-        staggeredGridLayoutManager = new StaggeredGridLayoutManager(2, LinearLayoutManager.VERTICAL);
+        gridLayoutManager = new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL);
 
         post_list_view = view.findViewById(R.id.all_post_list_view);
-        post_list_view.setLayoutManager(staggeredGridLayoutManager);
+        post_list_view.setLayoutManager(gridLayoutManager);
         post_list_view.setAdapter(gridViewAdapter);
+        post_list_view.setItemViewCacheSize(30);
 
         getPosts();
         return view;

@@ -100,6 +100,8 @@ public class ProfileFragment extends Fragment {
     CircleImageView userImage;
     ImageView saveImage;
     ImageView backPic;
+    TextView followersName;
+    TextView followingName;
     TextView firstPicture;
     TextView displayName;
     TextView following;
@@ -115,6 +117,7 @@ public class ProfileFragment extends Fragment {
     FirebaseFirestore firebaseFirestore;
     DatabaseReference reference;
     FirebaseAuth mAuth;
+    Query query;
 
     String username;
     String user_id;
@@ -150,10 +153,13 @@ public class ProfileFragment extends Fragment {
         user_id = mAuth.getCurrentUser().getUid();
 
         recyclerView = view.findViewById(R.id.posts_recyclerView);
+        followersName = view.findViewById(R.id.followers_name);
+        followingName = view.findViewById(R.id.following_name);
         following = view.findViewById(R.id.user_following);
         followers = view.findViewById(R.id.user_followers);
-        backPic = view.findViewById(R.id.back_picture);
         displayName = view.findViewById(R.id.user_name);
+        backPic = view.findViewById(R.id.back_picture);
+        userImage = view.findViewById(R.id.user_image);
         userBio = view.findViewById(R.id.unique_name);
         btnText = view.findViewById(R.id.button_text);
         noPost = view.findViewById(R.id.no_post);
@@ -166,14 +172,6 @@ public class ProfileFragment extends Fragment {
 
         abl = view.findViewById(R.id.appBarLayout);
         abl.setVisibility(View.GONE);
-
-        userImage = view.findViewById(R.id.user_image);
-        userImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                showProfileImage();
-            }
-        });
 
         firstPicture = view.findViewById(R.id.first_picture);
         firstPicture.setOnClickListener(new View.OnClickListener() {
@@ -205,36 +203,43 @@ public class ProfileFragment extends Fragment {
         followers.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                String followersCount = followers.getText().toString();
-                if (!followersCount.equals("0")) {
-                    Intent followersIntent = new Intent(getActivity(), FollowersActivity.class);
-                    followersIntent.putExtra("id", user_id);
-                    followersIntent.putExtra("title", "followers");
-                    startActivity(followersIntent);
-                }
+                visitFollowers();
             }
         });
 
         following.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                visitFollowing();
+            }
+        });
 
-                String followingCount = following.getText().toString();
-                if (!followingCount.equals("0")) {
-                    Intent followersIntent = new Intent(getActivity(), FollowersActivity.class);
-                    followersIntent.putExtra("id", user_id);
-                    followersIntent.putExtra("title", "following");
-                    startActivity(followersIntent);
-                }
+        userImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                showProfileImage();
+            }
+        });
+
+        followersName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                visitFollowers();
+            }
+        });
+
+        followingName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                visitFollowing();
             }
         });
 
         gridViewAdapter = new GridViewAdapter(mImageUrls);
         staggeredGridLayoutManager = new StaggeredGridLayoutManager(NUM_COLUMNS, StaggeredGridLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(staggeredGridLayoutManager);
-        recyclerView.setHasFixedSize(true);
         recyclerView.setAdapter(gridViewAdapter);
+        recyclerView.setItemViewCacheSize(30);
 
         return view;
     }
@@ -376,39 +381,61 @@ public class ProfileFragment extends Fragment {
 
     private void getPosts() {
 
-        firebaseFirestore.collection("Posts").orderBy("time", Query.Direction.DESCENDING)
-                .addSnapshotListener(new EventListener<QuerySnapshot>() {
+        query = firebaseFirestore.collection("Posts").orderBy("time", Query.Direction.DESCENDING);
+        query.addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
 
                         int postsCount = 0;
                         postCount.setText("0");
+
                         if (e != null) {
                             Log.e(TAG, "onEvent: ", e);
                         } else {
                             mImageUrls.clear();
+
                             for (DocumentChange doc : documentSnapshots.getDocumentChanges()) {
-
                                 if (doc.getType() == DocumentChange.Type.ADDED) {
-                                    Posts posts = doc.getDocument().toObject(Posts.class);
 
+                                    Posts posts = doc.getDocument().toObject(Posts.class);
                                     if (posts.getUser_id().equals(user_id)) {
 
                                         postsCount++;
                                         postCount.setText("" + postsCount);
                                         mImageUrls.add(posts);
-                                        noPost.setVisibility(View.GONE);
-                                        recyclerView.setVisibility(View.VISIBLE);
                                     }
+                                    recyclerView.setVisibility(View.VISIBLE);
+                                    gridViewAdapter.notifyDataSetChanged();
                                 }
-                                gridViewAdapter.notifyDataSetChanged();
                             }
-                        }
-                        if (mImageUrls.isEmpty()) {
-                            noPost.setVisibility(View.VISIBLE);
+                            if (mImageUrls.isEmpty()) {
+                                noPost.setVisibility(View.VISIBLE);
+                            }
                         }
                     }
                 });
+    }
+
+    private void visitFollowers() {
+
+        String followersCount = followers.getText().toString();
+        if (!followersCount.equals("0")) {
+            Intent followersIntent = new Intent(getActivity(), FollowersActivity.class);
+            followersIntent.putExtra("id", user_id);
+            followersIntent.putExtra("title", "followers");
+            startActivity(followersIntent);
+        }
+    }
+
+    private void visitFollowing() {
+
+        String followingCount = following.getText().toString();
+        if (!followingCount.equals("0")) {
+            Intent followersIntent = new Intent(getActivity(), FollowersActivity.class);
+            followersIntent.putExtra("id", user_id);
+            followersIntent.putExtra("title", "following");
+            startActivity(followersIntent);
+        }
     }
 
     private void showProfileImage() {

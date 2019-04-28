@@ -14,11 +14,11 @@ import com.blogspot.yashas003.chitter.Activities.PostDetailActivity;
 import com.blogspot.yashas003.chitter.Activities.UsersProfileActivity;
 import com.blogspot.yashas003.chitter.Model.Notifications;
 import com.blogspot.yashas003.chitter.R;
+import com.blogspot.yashas003.chitter.Utils.PicassoCache;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import java.util.List;
@@ -68,31 +68,11 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
 
         if (!notifications.getPost_id().equals("")) {
 
-            firestore.collection("Posts").document(notifications.getPost_id()).get().addOnCompleteListener(new OnCompleteListener<DocumentSnapshot>() {
-                @Override
-                public void onComplete(@NonNull Task<DocumentSnapshot> task) {
-
-                    if (task.isSuccessful()) {
-
-                        if (task.getResult().exists()) {
-
-                            String post_thumb = task.getResult().getString("thumb");
-                            final String post_image = task.getResult().getString("image_url");
-
-                            Picasso.get().load(post_thumb).into(viewHolder.notifiedImage, new Callback() {
-                                @Override
-                                public void onSuccess() {
-                                    Picasso.get().load(post_image).placeholder(viewHolder.notifiedImage.getDrawable()).into(viewHolder.notifiedImage);
-                                }
-
-                                @Override
-                                public void onError(Exception e) {
-                                }
-                            });
-                        }
-                    }
-                }
-            });
+            PicassoCache
+                    .getPicassoInstance(mContext)
+                    .load(notifications.getImage_url())
+                    .placeholder(R.mipmap.postback)
+                    .into(viewHolder.notifiedImage);
         }
 
         if (notifications.isIs_post()) {

@@ -17,7 +17,8 @@
         android:clickable="true"
         android:focusable="true"
         android:foreground="@drawable/ripple_effect"
-        app:cardCornerRadius="8dp"
+        app:cardCornerRadius="0dp"
+        app:cardElevation="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -31,13 +32,13 @@
             <ImageView
                 android:id="@+id/grid_post_image"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
                 android:scaleType="centerCrop"
                 app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintDimensionRatio="H,1:1"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@mipmap/placeholder"
                 tools:ignore="ContentDescription" />
 
         </android.support.constraint.ConstraintLayout>

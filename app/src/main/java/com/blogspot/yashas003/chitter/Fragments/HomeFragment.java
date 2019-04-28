@@ -31,7 +31,6 @@ import com.google.firebase.firestore.DocumentChange;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 
@@ -41,26 +40,26 @@ import java.util.List;
 import static android.support.constraint.Constraints.TAG;
 
 public class HomeFragment extends Fragment {
-    BottomNavigationView bottomNavigationView;
-    MenuItem menuItem;
     Menu menu;
+    MenuItem menuItem;
+    BottomNavigationView bottomNavigationView;
 
-    LinearLayoutManager layoutManager;
-    List<String> following_list;
-    RecyclerView postListView;
-    ConstraintLayout welcome;
-    PostAdapter postAdapter;
-    ProgressBar loader;
-
-    List<Posts> post_list;
     String mUser;
     Toolbar toolbar;
+    ProgressBar loader;
+    ProgressBar loadingMore;
+    ConstraintLayout welcome;
 
-    FirebaseFirestoreSettings firestoreSettings;
+    List<Posts> post_list;
+    PostAdapter postAdapter;
+    RecyclerView postListView;
+    List<String> following_list;
+    LinearLayoutManager layoutManager;
+
+    Query firstQuery;
+    FirebaseAuth mAuth;
     DatabaseReference mreference;
     FirebaseFirestore mfirestore;
-    FirebaseAuth mAuth;
-    Query query;
 
     @Nullable
     @Override
@@ -75,27 +74,26 @@ public class HomeFragment extends Fragment {
         }
 
         toolbar = view.findViewById(R.id.home_toolbar);
-        AppCompatActivity activity = (AppCompatActivity) getActivity();
+        final AppCompatActivity activity = (AppCompatActivity) getActivity();
         toolbar.setTitleTextAppearance(getActivity(), R.style.ToolBarFont);
         activity.setSupportActionBar(toolbar);
 
+        loadingMore = view.findViewById(R.id.loading_more);
         welcome = view.findViewById(R.id.welcome);
         loader = view.findViewById(R.id.home_progress);
-
-        firestoreSettings = new FirebaseFirestoreSettings.Builder().setPersistenceEnabled(true).build();
 
         mAuth = FirebaseAuth.getInstance();
         mUser = mAuth.getCurrentUser().getUid();
         mfirestore = FirebaseFirestore.getInstance();
 
         post_list = new ArrayList<>();
-        postAdapter = new PostAdapter(post_list);
+        postAdapter = new PostAdapter(post_list, getContext());
         layoutManager = new LinearLayoutManager(getActivity());
 
         postListView = view.findViewById(R.id.post_list_view);
         postListView.setLayoutManager(layoutManager);
         postListView.setAdapter(postAdapter);
-        postListView.setHasFixedSize(true);
+        postListView.setItemViewCacheSize(30);
 
         return view;
     }
@@ -125,9 +123,8 @@ public class HomeFragment extends Fragment {
 
     private void readPosts() {
 
-        query = mfirestore.collection("Posts").orderBy("time", Query.Direction.DESCENDING);
-        mfirestore.setFirestoreSettings(firestoreSettings);
-        query.addSnapshotListener(new EventListener<QuerySnapshot>() {
+        firstQuery = mfirestore.collection("Posts").orderBy("time", Query.Direction.DESCENDING);
+        firstQuery.addSnapshotListener(new EventListener<QuerySnapshot>() {
             @Override
             public void onEvent(QuerySnapshot documentSnapshots, FirebaseFirestoreException e) {
 
@@ -140,8 +137,8 @@ public class HomeFragment extends Fragment {
                         if (doc.getType() == DocumentChange.Type.ADDED) {
 
                             Posts posts = doc.getDocument().toObject(Posts.class);
-
                             for (String id : following_list) {
+
                                 if (posts.getUser_id().equals(id)) {
                                     post_list.add(posts);
                                     loader.setVisibility(View.GONE);

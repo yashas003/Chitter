@@ -19,6 +19,7 @@ import android.widget.Toast;
 import com.blogspot.yashas003.chitter.Activities.UsersProfileActivity;
 import com.blogspot.yashas003.chitter.Model.Users;
 import com.blogspot.yashas003.chitter.R;
+import com.blogspot.yashas003.chitter.Utils.PicassoCache;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -26,10 +27,12 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import com.squareup.picasso.Picasso;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -108,12 +111,18 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
     private void addNotification(String user_id) {
 
         if (!firebaseUser.getUid().equals(user_id)) {
-            databaseReference = FirebaseDatabase.getInstance().getReference("Notifications").child(user_id).child(firebaseUser.getUid());
+
+            String date = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
+            databaseReference = FirebaseDatabase.getInstance()
+                    .getReference("Notifications")
+                    .child(user_id)
+                    .child(firebaseUser.getUid());
 
             HashMap<String, Object> notifyMap = new HashMap<>();
             notifyMap.put("user_id", firebaseUser.getUid());
             notifyMap.put("text", "Started following you.");
             notifyMap.put("post_id", "");
+            notifyMap.put("time", date);
             notifyMap.put("is_post", false);
 
             databaseReference.setValue(notifyMap);
@@ -132,7 +141,13 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.viewHolder> {
         final Users users = users_list.get(i);
 
         viewHolder.userName.setText(users.getUser_name());
-        Picasso.get().load(users.getUser_image()).placeholder(R.mipmap.placeholder).into(viewHolder.userImage);
+
+        PicassoCache
+                .getPicassoInstance(viewHolder.userImage.getContext())
+                .load(users.getUser_image())
+                .placeholder(R.mipmap.placeholder)
+                .into(viewHolder.userImage);
+
         isFollowing(users.getUser_id(), firebaseUser.getUid(), viewHolder.followBtnText, viewHolder.followBtn);
 
         if (users.getUnique_name() != null && !users.getUnique_name().trim().isEmpty()) {

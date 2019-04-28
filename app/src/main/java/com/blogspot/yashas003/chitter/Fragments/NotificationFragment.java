@@ -24,6 +24,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -78,8 +79,9 @@ public class NotificationFragment extends Fragment {
     private void readNotification() {
 
         notificationsList.clear();
-        reference = FirebaseDatabase.getInstance().getReference("Notifications").child(firebaseUser.getUid());
-        reference.addValueEventListener(new ValueEventListener() {
+        reference = FirebaseDatabase.getInstance().getReference();
+        Query query = reference.child("Notifications").child(firebaseUser.getUid()).orderByChild("time");
+        query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
 

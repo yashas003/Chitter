@@ -25,10 +25,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 public class CommentsActivity extends AppCompatActivity {
     Toolbar toolbar;
@@ -42,6 +45,7 @@ public class CommentsActivity extends AppCompatActivity {
 
     String postId;
     String ownerId;
+    String imageUrl;
 
     FirebaseUser firebaseUser;
     FirebaseAuth firebaseAuth;
@@ -61,6 +65,7 @@ public class CommentsActivity extends AppCompatActivity {
         Intent intent = getIntent();
         postId = intent.getStringExtra("post_id");
         ownerId = intent.getStringExtra("owner_id");
+        imageUrl = intent.getStringExtra("image_url");
 
         toolbar = findViewById(R.id.comments_toolbar);
         toolbar.setTitleTextAppearance(this, R.style.ToolBarFont);
@@ -145,12 +150,18 @@ public class CommentsActivity extends AppCompatActivity {
 
     private void addNotification() {
 
-        reference = FirebaseDatabase.getInstance().getReference("Notifications").child(ownerId).child("comment" + postId);
+        String date = new SimpleDateFormat("yyyyMMddHHmmss", Locale.US).format(new Date());
+        reference = FirebaseDatabase.getInstance()
+                .getReference("Notifications")
+                .child(ownerId)
+                .child("comment" + postId);
 
         HashMap<String, Object> notifyMap = new HashMap<>();
         notifyMap.put("user_id", firebaseUser.getUid());
         notifyMap.put("text", "commented: " + commentText.getText().toString());
         notifyMap.put("post_id", postId);
+        notifyMap.put("image_url", imageUrl);
+        notifyMap.put("time", date);
         notifyMap.put("is_post", true);
 
         reference.setValue(notifyMap);

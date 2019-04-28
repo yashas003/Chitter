@@ -12,7 +12,7 @@ import android.widget.ImageView;
 import com.blogspot.yashas003.chitter.Activities.PostDetailActivity;
 import com.blogspot.yashas003.chitter.Model.Posts;
 import com.blogspot.yashas003.chitter.R;
-import com.squareup.picasso.Picasso;
+import com.blogspot.yashas003.chitter.Utils.PicassoCache;
 
 import java.util.List;
 
@@ -33,10 +33,13 @@ public class GridViewAdapter extends RecyclerView.Adapter<GridViewAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int i) {
-
         final Posts posts = post_list.get(i);
 
-        Picasso.get().load(posts.getImage_url()).into(viewHolder.image);
+        PicassoCache
+                .getPicassoInstance(viewHolder.image.getContext())
+                .load(posts.getImage_url())
+                .placeholder(R.mipmap.postback)
+                .into(viewHolder.image);
 
         viewHolder.cardView.setOnClickListener(new View.OnClickListener() {
             @Override

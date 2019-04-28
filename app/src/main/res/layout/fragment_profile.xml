@@ -162,7 +162,7 @@
                         android:textColor="#D9FFFFFF"
                         android:textSize="24sp"
                         android:textStyle="bold"
-                        app:layout_constraintBottom_toTopOf="@+id/textView8"
+                        app:layout_constraintBottom_toTopOf="@+id/posts_name"
                         app:layout_constraintEnd_toStartOf="@+id/user_followers"
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
@@ -178,7 +178,7 @@
                         android:textColor="#D9FFFFFF"
                         android:textSize="24sp"
                         android:textStyle="bold"
-                        app:layout_constraintBottom_toTopOf="@+id/textView9"
+                        app:layout_constraintBottom_toTopOf="@+id/followers_name"
                         app:layout_constraintEnd_toStartOf="@+id/user_following"
                         app:layout_constraintStart_toEndOf="@+id/user_posts"
                         app:layout_constraintTop_toTopOf="parent"
@@ -192,14 +192,14 @@
                         android:textColor="#D9FFFFFF"
                         android:textSize="24sp"
                         android:textStyle="bold"
-                        app:layout_constraintBottom_toTopOf="@+id/textView10"
+                        app:layout_constraintBottom_toTopOf="@+id/following_name"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toEndOf="@+id/user_followers"
                         app:layout_constraintTop_toTopOf="parent"
                         tools:ignore="HardcodedText" />
 
                     <TextView
-                        android:id="@+id/textView8"
+                        android:id="@+id/posts_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
@@ -213,7 +213,7 @@
                         tools:ignore="HardcodedText" />
 
                     <TextView
-                        android:id="@+id/textView9"
+                        android:id="@+id/followers_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"
@@ -227,7 +227,7 @@
                         tools:ignore="HardcodedText" />
 
                     <TextView
-                        android:id="@+id/textView10"
+                        android:id="@+id/following_name"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="8dp"

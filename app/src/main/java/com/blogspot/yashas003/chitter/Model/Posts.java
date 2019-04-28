@@ -10,7 +10,7 @@ public class Posts {
     public Posts() {
     }
 
-    public Posts(String user_id, String image_url, String desc, String thumb, String post_id, Date time) {
+    public Posts(String user_id, String image_url, String desc, String thumb, String post_id, String user_name, String user_image, Date time) {
         this.user_id = user_id;
         this.image_url = image_url;
         this.desc = desc;
